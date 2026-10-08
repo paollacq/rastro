@@ -1,0 +1,63 @@
+:root {
+  --papel: #f6f4ee;
+  --tinta: #1c1b19;
+  --grafite: #6b6860;
+  --linha: #ddd8cc;
+  --carimbo: #2f4a8a;
+  --conferido: #2e7d4f;
+  --pendente: #b7791f;
+  --recusa: #a63d32;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--papel);
+  color: var(--tinta);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Always on screen, so nobody mistakes the demo for real money. */
+.faixa {
+  margin: 0;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--linha);
+  color: var(--grafite);
+  font-size: 13px;
+  text-align: center;
+}
+
+.inicio {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 96px 16px;
+}
+
+.marca {
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.marca::after {
+  content: '···';
+  margin-left: 2px;
+  color: var(--carimbo);
+  letter-spacing: 0.12em;
+}

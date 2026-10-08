@@ -1,0 +1,24 @@
+{
+  "name": "rastro",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @rastro/web dev",
+    "worker": "pnpm --filter @rastro/worker dev",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "tsc -p tsconfig.json",
+    "wallets:new": "pnpm --filter @rastro/chain wallets:new",
+    "wallets:fund": "pnpm --filter @rastro/chain wallets:fund",
+    "chain:check": "pnpm --filter @rastro/chain check",
+    "pix:smoke": "pnpm --filter @rastro/pix smoke"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}

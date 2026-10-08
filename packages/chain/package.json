@@ -1,0 +1,16 @@
+{
+  "name": "@rastro/chain",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "wallets:new": "tsx src/wallets.ts new",
+    "wallets:fund": "tsx --env-file-if-exists=../../.env src/wallets.ts fund",
+    "check": "tsx --env-file-if-exists=../../.env src/check.ts"
+  },
+  "dependencies": {
+    "viem": "^2.57.4"
+  }
+}
