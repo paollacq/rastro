@@ -1,7 +1,17 @@
 {
   "chainId": 42431,
-  "policyId": null,
-  "tbrl": null,
-  "rfq": null,
-  "txs": {}
+  "policyId": "1253190",
+  "tbrl": "0x20c000000000000000000000d05CA7629DD36943",
+  "rfq": "0xdcd9b80875c08653b664643afbb1cca3c2a0d613",
+  "txs": {
+    "policy": "0x009be8c0e1f3b58c8d93c2ff4a2ab6fce0f301f7f39fb9cd24056bf609374217",
+    "token": "0x4f1f939929b8942f3fcb4f930b2fa9b01c705b3e8e2376ff6ee7ceceff965c45",
+    "tokenPolicy": "0x2e757eef7bba7055dbf30696677554ea6404efbc90fa51d61a0f25b6d99290d9",
+    "role:issuer": "0x25a86114a5f496cf852ea3f55c359564e24315247fa82048d1b32bbf1a0f8e47",
+    "role:pause": "0xbe900b3713af59d06ce2d8479c6535ea9f75ce9a222f82a9633e8cadbe071c7a",
+    "role:unpause": "0x8111dcc7138cd202a1d94661cd15496f03897d3629e96ab9e1442794a827e9a6",
+    "rfq": "0x0e14900e751b4bb191bc812eded1f71c26acc639de722ffaa9fa30c76e9e4bcf",
+    "whitelist:RFQ": "0x4ceeecd8ff8be0e94e4695581616d6092aa37aaf03cc34b9aca30d457f37221e",
+    "inventory": "0x28d8347a31b81faae6c4baf6c7cca79f3a059e83eadafd04870dc0b14a2d5a8d"
+  }
 }
