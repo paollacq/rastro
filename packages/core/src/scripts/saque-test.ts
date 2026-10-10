@@ -16,7 +16,7 @@ import { Abis } from 'viem/tempo';
 import { createContext } from '../context.ts';
 import { AppError } from '../errors.ts';
 import { baseToBrl, brlToBase, floorToCents } from '../money.ts';
-import { tick } from '../orchestrator.ts';
+import { releaseOrchestrator, tick } from '../orchestrator.ts';
 import { trace } from '../trace.ts';
 import { syncChain } from '../watcher.ts';
 import { requestWithdrawal } from '../withdraw.ts';
@@ -115,4 +115,6 @@ if (result.status === 'CONCLUIDO') {
   console.log(`${result.status}: ${result.failure ?? ''}`);
   if (result.refund[0]) console.log(`refund     ${explorer}/tx/${result.refund[0].txHash}  memo "${result.refund[0].memoText}"`);
 }
+// Hand the lease back, or the next run sits idle until it lapses (120 s).
+await releaseOrchestrator(ctx).catch(() => {});
 await ctx.db.sql.end();
