@@ -27,7 +27,9 @@ interface ITIP20 {
 
     // Unlike transfer, transferWithMemo returns nothing.
     function transferWithMemo(address to, uint256 amount, bytes32 memo) external;
-    function transferFromWithMemo(address from, address to, uint256 amount, bytes32 memo) external returns (bool);
+    function transferFromWithMemo(address from, address to, uint256 amount, bytes32 memo)
+        external
+        returns (bool);
 
     function mintWithMemo(address to, uint256 amount, bytes32 memo) external;
     function burnWithMemo(uint256 amount, bytes32 memo) external;

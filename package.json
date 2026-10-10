@@ -10,10 +10,15 @@
     "worker": "pnpm --filter @rastro/worker dev",
     "test": "pnpm -r --if-present test",
     "typecheck": "tsc -p tsconfig.json",
-    "wallets:new": "pnpm --filter @rastro/chain wallets:new",
-    "wallets:fund": "pnpm --filter @rastro/chain wallets:fund",
-    "chain:check": "pnpm --filter @rastro/chain check",
-    "pix:smoke": "pnpm --filter @rastro/pix smoke"
+    "wallets:new": "pnpm --filter @rastro/chain run wallets:new",
+    "wallets:fund": "pnpm --filter @rastro/chain run wallets:fund",
+    "chain:check": "pnpm --filter @rastro/chain run check",
+    "contracts:build": "pnpm --filter @rastro/contracts run build && pnpm --filter @rastro/chain run abi:export",
+    "contracts:test": "pnpm --filter @rastro/contracts run test",
+    "abi:export": "pnpm --filter @rastro/chain run abi:export",
+    "chain:setup": "pnpm --filter @rastro/chain run onchain-setup",
+    "chain:fill-test": "pnpm --filter @rastro/chain run fill-test",
+    "pix:smoke": "pnpm --filter @rastro/pix run smoke"
   },
   "devDependencies": {
     "@types/node": "^22",

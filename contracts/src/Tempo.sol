@@ -9,7 +9,8 @@ import {ITIP403Registry} from "./interfaces/ITIP403Registry.sol";
 library Tempo {
     ITIP20 internal constant PATH_USD = ITIP20(0x20C0000000000000000000000000000000000000);
     ITIP20Factory internal constant TIP20_FACTORY = ITIP20Factory(0x20Fc000000000000000000000000000000000000);
-    ITIP403Registry internal constant TIP403_REGISTRY = ITIP403Registry(0x403c000000000000000000000000000000000000);
+    ITIP403Registry internal constant TIP403_REGISTRY =
+        ITIP403Registry(0x403c000000000000000000000000000000000000);
 
     uint8 internal constant WHITELIST = 0;
     uint8 internal constant BLACKLIST = 1;

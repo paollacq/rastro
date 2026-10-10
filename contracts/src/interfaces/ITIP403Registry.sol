@@ -6,7 +6,9 @@ pragma solidity ^0.8.24;
 /// treasury) have to be on the list too.
 interface ITIP403Registry {
     event PolicyCreated(uint64 indexed policyId, address indexed updater, uint8 policyType);
-    event WhitelistUpdated(uint64 indexed policyId, address indexed updater, address indexed account, bool allowed);
+    event WhitelistUpdated(
+        uint64 indexed policyId, address indexed updater, address indexed account, bool allowed
+    );
 
     function policyIdCounter() external view returns (uint64);
     function policyExists(uint64 policyId) external view returns (bool);
