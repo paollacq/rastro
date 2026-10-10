@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./deployments": "./src/deployments.ts"
   },
   "scripts": {
     "wallets:new": "tsx src/wallets.ts new",
@@ -15,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rastro/pix": "workspace:*",
     "viem": "^2.57.4"
   }
 }

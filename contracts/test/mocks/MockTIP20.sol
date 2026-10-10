@@ -21,6 +21,7 @@ contract MockTIP20 {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
     event TransferWithMemo(address indexed from, address indexed to, uint256 amount, bytes32 indexed memo);
+    event Burn(address indexed from, uint256 amount);
 
     error InsufficientBalance(uint256 available, uint256 required, address token);
     error InsufficientAllowance();
@@ -80,6 +81,19 @@ contract MockTIP20 {
         _move(from, to, amount);
         emit TransferWithMemo(from, to, amount, memo);
         return true;
+    }
+
+    // Burns from the caller. The real token also requires ISSUER_ROLE.
+    function burnWithMemo(uint256 amount, bytes32 memo) external {
+        uint256 available = balanceOf[msg.sender];
+        if (available < amount) revert InsufficientBalance(available, amount, address(this));
+        unchecked {
+            balanceOf[msg.sender] = available - amount;
+            totalSupply -= amount;
+        }
+        emit Transfer(msg.sender, address(0), amount);
+        emit TransferWithMemo(msg.sender, address(0), amount, memo);
+        emit Burn(msg.sender, amount);
     }
 
     function _spend(address from, uint256 amount) private {

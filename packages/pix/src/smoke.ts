@@ -1,4 +1,4 @@
-import { decodeMemo, encodeMemo, isEndToEndId } from './e2e.ts';
+import { decodeMemo, encodeMemo, endToEndFormat } from './e2e.ts';
 import { PayZu, type PixTransaction } from './payzu.ts';
 
 // Run once per fresh sandbox credential. Checks that a charge and a payout both
@@ -30,9 +30,15 @@ async function settle(read: () => Promise<PixTransaction>, label: string) {
   }
 }
 
+// Two separate checks: the ID has a format we know (official or sandbox), and it goes
+// into the memo and comes back unchanged. Only the second one matters for the chain.
 function report(label: string, tx: PixTransaction) {
   const id = tx.endToEndId;
-  const fits = tx.status === 'COMPLETED' && id !== null && isEndToEndId(id) && decodeMemo(encodeMemo(id)) === id;
-  console.log(`${label.padEnd(7)} ${tx.status.padEnd(10)} ${id ?? '(no endToEndId)'}  ${fits ? 'fits the memo' : 'CHECK THIS'}`);
-  if (!fits) process.exitCode = 1;
+  const format = id ? endToEndFormat(id) : null;
+  const fits = id !== null && decodeMemo(encodeMemo(id)) === id;
+  const shape = format ? `${format} format, ${id?.length} chars` : 'unknown format';
+  console.log(
+    `${label.padEnd(7)} ${tx.status.padEnd(10)} ${id ?? '(no endToEndId)'}  ${shape}, ${fits ? 'fits the memo' : "doesn't fit the memo"}`,
+  );
+  if (tx.status !== 'COMPLETED' || !format || !fits) process.exitCode = 1;
 }

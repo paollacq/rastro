@@ -7,8 +7,8 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@rastro/chain": "workspace:*",
-    "tsx": "^4.23.15",
-    "viem": "^2.57.4"
+    "@rastro/core": "workspace:*",
+    "@rastro/db": "workspace:*",
+    "tsx": "^4.23.15"
   }
 }

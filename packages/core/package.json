@@ -1,0 +1,21 @@
+{
+  "name": "@rastro/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
+    "ptax": "tsx --env-file-if-exists=../../.env src/scripts/ptax.ts",
+    "saque-test": "tsx --env-file-if-exists=../../.env src/scripts/saque-test.ts",
+    "pix-webhook": "tsx --env-file-if-exists=../../.env src/scripts/pix-webhook.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rastro/chain": "workspace:*",
+    "@rastro/db": "workspace:*",
+    "@rastro/pix": "workspace:*",
+    "viem": "^2.57.4"
+  }
+}

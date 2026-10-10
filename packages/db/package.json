@@ -1,0 +1,15 @@
+{
+  "name": "@rastro/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "migrate": "tsx --env-file-if-exists=../../.env src/migrate-cli.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "postgres": "3.4.9"
+  }
+}

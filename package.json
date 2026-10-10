@@ -6,8 +6,8 @@
     "node": ">=22.9"
   },
   "scripts": {
-    "dev": "pnpm --filter @rastro/web dev",
-    "worker": "pnpm --filter @rastro/worker dev",
+    "dev": "pnpm --filter @rastro/web run dev",
+    "worker": "pnpm --filter @rastro/worker run dev",
     "test": "pnpm -r --if-present test",
     "typecheck": "tsc -p tsconfig.json",
     "wallets:new": "pnpm --filter @rastro/chain run wallets:new",
@@ -18,7 +18,12 @@
     "abi:export": "pnpm --filter @rastro/chain run abi:export",
     "chain:setup": "pnpm --filter @rastro/chain run onchain-setup",
     "chain:fill-test": "pnpm --filter @rastro/chain run fill-test",
-    "pix:smoke": "pnpm --filter @rastro/pix run smoke"
+    "pix:smoke": "pnpm --filter @rastro/pix run smoke",
+    "db:migrate": "pnpm --filter @rastro/db run migrate",
+    "db:seed": "pnpm --filter @rastro/core run seed",
+    "fx:ptax": "pnpm --filter @rastro/core run ptax",
+    "pix:webhook": "pnpm --filter @rastro/core run pix-webhook",
+    "saque:test": "pnpm --filter @rastro/core run saque-test"
   },
   "devDependencies": {
     "@types/node": "^22",

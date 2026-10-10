@@ -2,6 +2,7 @@
 //
 // Safe to run again. Each step looks at the chain first and skips what is already done, and
 // whatever it creates goes into deployments/moderato.json the moment it exists.
+import { PayZu } from '@rastro/pix';
 import { formatUnits, isAddressEqual, keccak256, parseUnits, toHex, type Address, type Hash } from 'viem';
 import { Abis } from 'viem/tempo';
 import { rastroRfqAbi, rastroRfqBytecode } from './abi/rastroRfq.ts';
@@ -199,21 +200,53 @@ for (const [who, address] of members) {
   say('whitelist', `${who} added  ${link(receipt.transactionHash)}`);
 }
 
-// 7. Stock: the treasury mints tBRL straight into the RFQ, up to the target.
+// 7. Stock: the treasury mints tBRL straight into the RFQ, up to the target, and never past
+// the reais behind it. With Pix on the PayZu sandbox, that is the sandbox balance: total
+// tBRL supply may not exceed it.
 const decimals = await client.readContract({ address: tbrl, abi: Abis.tip20, functionName: 'decimals' });
 const target = parseUnits(inventory, decimals);
 const stock = await client.readContract({ address: tbrl, abi: Abis.tip20, functionName: 'balanceOf', args: [rfq] });
-if (stock < target) {
+let toMint = stock < target ? target - stock : 0n;
+
+const reserve = await sandboxReserve(decimals);
+if (reserve === 'unknown') {
+  say('reserve', "couldn't read the PayZu sandbox balance, so nothing is minted. Fix PAYZU_TOKEN (or set PIX_MODE=simulator) and run setup again.");
+  toMint = 0n;
+} else if (reserve !== null && toMint > 0n) {
+  const supply = await client.readContract({ address: tbrl, abi: Abis.tip20, functionName: 'totalSupply' });
+  const headroom = reserve > supply ? reserve - supply : 0n;
+  if (toMint > headroom) {
+    say('reserve', `the sandbox holds R$ ${formatUnits(reserve, decimals)}; minting only what that backs`);
+    toMint = headroom;
+  }
+}
+
+if (toMint > 0n) {
   const { receipt } = await asTreasury.token.mintSync({
     token: tbrl,
     to: rfq,
-    amount: target - stock,
+    amount: toMint,
     memo: textMemo('rastro:inventory'),
   });
   record('inventory', receipt.transactionHash);
-  say('inventory', `${formatUnits(target - stock, decimals)} tBRL minted to the RFQ  ${link(receipt.transactionHash)}`);
+  say('inventory', `${formatUnits(toMint, decimals)} tBRL minted to the RFQ  ${link(receipt.transactionHash)}`);
 } else {
-  say('inventory', `the RFQ already holds ${formatUnits(stock, decimals)} tBRL`);
+  say('inventory', `the RFQ holds ${formatUnits(stock, decimals)} tBRL; nothing to mint`);
+}
+
+// The PayZu sandbox balance in token units; null when Pix runs on the simulator (which
+// starts with the same R$ 10.000 as the target); 'unknown' when the sandbox can't be read,
+// in which case nothing is minted: no tBRL without the reais behind it.
+async function sandboxReserve(tokenDecimals: number): Promise<bigint | null | 'unknown'> {
+  if (process.env.PIX_MODE === 'simulator') return null;
+  if (!process.env.PAYZU_TOKEN) return 'unknown';
+  try {
+    const { balanceAvailable } = await PayZu.fromEnv().balance();
+    return parseUnits(balanceAvailable.toFixed(2), tokenDecimals);
+  } catch (error) {
+    say('reserve', `PayZu: ${error instanceof Error ? error.message.slice(0, 100) : error}`);
+    return 'unknown';
+  }
 }
 
 console.log(`
