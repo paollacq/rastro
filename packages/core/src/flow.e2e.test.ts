@@ -1,5 +1,5 @@
 import { account, publicClient, rastroRfqAbi, rastroRfqBytecode, tip403Registry, walletClient } from '@rastro/chain';
-import { connect, FINAL_STATUSES, migrate, queries, type Sql, type Withdrawal } from '@rastro/db';
+import { assertThrowawayDatabase, connect, FINAL_STATUSES, migrate, queries, type Sql, type Withdrawal } from '@rastro/db';
 import { readFileSync } from 'node:fs';
 import type { Abi, Address, Hex } from 'viem';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -77,6 +77,7 @@ describe.skipIf(!rpc || !dbUrl)('invoice 0047, paid and withdrawn to Pix, on a l
     await send(usd, 'mint', [account('payer').address, 10_000_000_000n]);
     await send(tbrl, 'mint', [rfq, 10_000_000_000n]);
 
+    assertThrowawayDatabase(dbUrl as string, 'E2E_DATABASE_URL');
     sql = connect(dbUrl);
     await sql.unsafe('drop schema if exists public cascade; create schema public;');
     await migrate(sql);

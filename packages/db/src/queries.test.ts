@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { connect, type Sql } from './client.ts';
 import { migrate } from './migrate.ts';
 import { queries, type Queries } from './queries.ts';
+import { assertThrowawayDatabase } from './testing.ts';
 
 // Runs against a throwaway database: TEST_DATABASE_URL=postgres://... pnpm --filter @rastro/db test
 const url = process.env.TEST_DATABASE_URL;
@@ -11,6 +12,7 @@ describe.skipIf(!url)('queries', () => {
   let q: Queries;
 
   beforeAll(async () => {
+    assertThrowawayDatabase(url as string, 'TEST_DATABASE_URL');
     sql = connect(url);
     await sql.unsafe('drop schema if exists public cascade; create schema public;');
     await migrate(sql);

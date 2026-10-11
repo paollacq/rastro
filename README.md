@@ -100,6 +100,10 @@ TEST_DATABASE_URL=postgres://… pnpm --filter @rastro/db test
 E2E_RPC_URL=http://127.0.0.1:8545 E2E_DATABASE_URL=postgres://… pnpm --filter @rastro/core test
 ```
 
+Both suites begin by dropping the `public` schema, so those two variables must point at a
+throwaway database, never the one in `DATABASE_URL`. They refuse to run if it is the same
+host, port and database name.
+
 The second one pays invoice 0047, withdraws it to a simulated Pix and checks the burn memo, on mock TIP-20s and a mock TIP-403 registry. It also covers the automatic withdrawal and what the screens read: wallet, ledger, whitelist and reserves.
 
 ## Layout
