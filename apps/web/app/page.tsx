@@ -1,4 +1,4 @@
-import { showcaseTrace, trailOf } from '@rastro/core';
+import { effectivePixMode, showcaseTrace, trailOf } from '@rastro/core';
 import Link from 'next/link';
 import { Carimbo } from '../components/carimbo';
 import { Comprovante } from '../components/comprovante';
@@ -26,13 +26,14 @@ const TITLES: Record<string, string> = {
 // The landing: one sentence, a real trail instead of an illustration, a waitlist that
 // writes to Postgres, and the way into the demo.
 export default async function Home() {
+  const mode = await load(() => effectivePixMode(context()));
   const showcase = await load(() => showcaseTrace(context()));
   const trace = showcase.ok ? showcase.data : null;
   const trail = trace ? trailOf(trace) : null;
 
   return (
     <>
-      <Faixa lang="pt" mode={currentPixMode()} />
+      <Faixa lang="pt" mode={mode.ok ? mode.data : currentPixMode()} />
       <main className="pagina pagina--media">
         <header className="topo">
           <Marca />
@@ -98,8 +99,12 @@ export default async function Home() {
         </section>
 
         <section className="secao" id="demo" aria-labelledby="demo-titulo">
-          <h2 id="demo-titulo">A demonstração, em quatro telas</h2>
+          <h2 id="demo-titulo">A demonstração, em cinco telas</h2>
           <ol style={{ paddingLeft: 20, marginTop: 8, display: 'grid', gap: 8 }}>
+            <li>
+              <Link href="/cadastro">O cadastro</Link>{' '}
+              <span className="mudo">que põe a carteira na lista da política, no Tempo</span>
+            </li>
             <li>
               <Link href="/invoice/0047">A fatura que o cliente de fora paga</Link>{' '}
               <span className="mudo">(em inglês, como ele veria)</span>

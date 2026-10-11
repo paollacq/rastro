@@ -67,6 +67,10 @@ export function ptaxDay(day: string, lang: Lang) {
   return `${weekday}, ${parts(iso, { day: '2-digit', month: '2-digit' }, lang)}`;
 }
 
+// "4:51 PM" · "16:51"
+export const timeOnly = (iso: string, lang: Lang = 'en') =>
+  parts(iso, { hour: lang === 'pt' ? '2-digit' : 'numeric', minute: '2-digit' }, lang);
+
 // 0x12ab…9f3c
 export const short = (hex: string, keep = 4) =>
   hex.length <= 2 + keep * 2 + 1 ? hex : `${hex.slice(0, 2 + keep)}…${hex.slice(-keep)}`;

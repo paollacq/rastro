@@ -6,6 +6,7 @@ import { Abis } from 'viem/tempo';
 import type { Context } from './context.ts';
 import { shortError } from './errors.ts';
 import { baseToBrl } from './money.ts';
+import { activePix } from './pix-mode.ts';
 import { settle, signAndSend, waitBriefly } from './tx.ts';
 
 // The withdrawal state machine. Each tick moves every open withdrawal as far as it can.
@@ -83,7 +84,9 @@ async function advanceOnce(ctx: Context, w: Withdrawal): Promise<Withdrawal | nu
     }
 
     case 'TBRL_NA_TESOURARIA': {
-      const pix = ctx.pix;
+      // New withdrawals follow the mode in force now, which falls back to the simulator
+      // when the sandbox credential has stopped working.
+      const pix = await activePix(ctx);
       let sent = await pix.findWithdrawal(w.id);
       if (!sent) {
         try {

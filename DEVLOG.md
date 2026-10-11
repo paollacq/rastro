@@ -2,6 +2,14 @@
 
 A few lines a day, newest on top: what broke, what we decided and why.
 
+## 2026-10-11
+
+- Etapa 4: cadastro that puts a wallet on the TIP-403 policy, a transfer the protocol refuses, the reserve monitor with its automatic pause, and the admin screen for the technical demo.
+- The bug of the day: the monitor paused the token in the middle of an ordinary withdrawal. Between the Pix leaving and the burn landing, the balance is already down and the supply is not, so the invariant looked broken for four seconds. Pausing then makes the burn impossible, so the withdrawal freezes with the Pix paid. Backing now counts what is in flight, and there is a test that keeps it that way.
+- The blocked attempt comes from the node's own refusal (`eth_call`, `PolicyForbids`), not from a reverted transaction: no gas, no block, and the reason in the console is the protocol's own.
+- `pnpm relatorio:conferir` reads the CSV back and checks every line against chain_events, including recomputing the reais from the PTAX and the spread. Run against a doctored CSV in the tests, it finds all three kinds of edit.
+- Local run: cadastro, barred transfer, allowed transfer, break, pause, restore and a withdrawal, all on anvil with the simulator. 42 tests in core.
+
 ## 2026-10-10, night
 
 - Etapa 3: the five screens, from the design tab. Tested on anvil + Postgres through the browser: invoice paid, Ana withdraws, the trail fills in live and the stamp lands; then a second invoice with automatic withdrawal on, which the worker sent out by Pix five seconds after the payment.

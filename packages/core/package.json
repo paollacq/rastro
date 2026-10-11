@@ -11,7 +11,10 @@
     "ptax": "tsx --env-file-if-exists=../../.env src/scripts/ptax.ts",
     "saque-test": "tsx --env-file-if-exists=../../.env src/scripts/saque-test.ts",
     "pix-webhook": "tsx --env-file-if-exists=../../.env src/scripts/pix-webhook.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "reconcile": "tsx --env-file-if-exists=../../.env src/scripts/reconcile.ts",
+    "reserves": "tsx --env-file-if-exists=../../.env src/scripts/reserves.ts",
+    "lastro-test": "tsx --env-file-if-exists=../../.env src/scripts/lastro-test.ts"
   },
   "dependencies": {
     "@rastro/chain": "workspace:*",

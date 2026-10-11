@@ -23,7 +23,10 @@
     "db:seed": "pnpm --filter @rastro/core run seed",
     "fx:ptax": "pnpm --filter @rastro/core run ptax",
     "pix:webhook": "pnpm --filter @rastro/core run pix-webhook",
-    "saque:test": "pnpm --filter @rastro/core run saque-test"
+    "saque:test": "pnpm --filter @rastro/core run saque-test",
+    "lastro": "pnpm --filter @rastro/core run reserves",
+    "lastro:test": "pnpm --filter @rastro/core run lastro-test",
+    "relatorio:conferir": "pnpm --filter @rastro/core run reconcile"
   },
   "devDependencies": {
     "@types/node": "^22",

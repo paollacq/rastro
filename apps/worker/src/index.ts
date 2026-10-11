@@ -1,8 +1,10 @@
-import { autoWithdraw, createContext, releaseOrchestrator, shortError, syncChain, tick } from '@rastro/core';
+import { autoWithdraw, createContext, monitorReserves, releaseOrchestrator, shortError, syncChain, tick } from '@rastro/core';
 
 // Every 2 s: copy new chain events into Postgres, start the withdrawals Ana asked to be
-// automatic, then move every open withdrawal as far as it can go. If a second worker
-// starts, the lease in Postgres keeps it from moving anything until the first one stops.
+// automatic, then move every open withdrawal as far as it can go. Every 15 s it also
+// compares the tBRL in circulation with the reais behind it, and pauses the token if the
+// first ever goes past the second. If a second worker starts, the lease in Postgres keeps
+// it from moving anything until the first one stops.
 
 const PASS_MS = 2_000;
 const HEARTBEAT_MS = 60_000;
@@ -26,6 +28,10 @@ while (running) {
     await autoWithdraw(ctx);
     const steps = await tick(ctx);
     if (events || steps) console.log(`${stamp()} +${events} chain events, ${steps} withdrawal steps`);
+    const reserves = await monitorReserves(ctx);
+    if (reserves?.pausedNow) {
+      console.log(`${stamp()} reserves short by R$ ${reserves.shortfallBrl}: tBRL paused on-chain`);
+    }
   } catch (error) {
     console.error(`${stamp()} pass failed: ${shortError(error)}`);
   }
@@ -33,7 +39,9 @@ while (running) {
     lastBeat = Date.now();
     const open = await ctx.db.openWithdrawals().catch(() => []);
     const cursor = await ctx.db.state('chain_cursor').catch(() => null);
-    console.log(`${stamp()} alive · block ${cursor ?? '?'} · ${open.length} open withdrawals`);
+    const last = await ctx.db.lastReserveCheck().catch(() => null);
+    const lastro = last ? `lastro ${last.ok ? 'ok' : 'SHORT'}` : 'lastro ?';
+    console.log(`${stamp()} alive · block ${cursor ?? '?'} · ${open.length} open withdrawals · ${lastro}`);
   }
   await new Promise((resolve) => setTimeout(resolve, Math.max(0, PASS_MS - (Date.now() - started))));
 }

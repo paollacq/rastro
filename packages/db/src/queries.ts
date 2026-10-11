@@ -170,6 +170,15 @@ export interface Operation {
   burnTx: string | null;
 }
 
+export interface PolicyChange {
+  id: string;
+  wallet: string;
+  allowed: boolean;
+  txHash: string | null;
+  actor: string;
+  at: Date;
+}
+
 export interface BlockedAttempt {
   id: string;
   fromAddress: string | null;
@@ -233,6 +242,11 @@ export function queries(sql: Sql) {
 
     async users() {
       return sql<User[]>`select * from users order by created_at`;
+    },
+
+    async userByCpfHash(cpfHash: string) {
+      const [row] = await sql<User[]>`select * from users where cpf_hash = ${cpfHash}`;
+      return row ?? null;
     },
 
     async userByWallet(wallet: string) {
@@ -478,8 +492,51 @@ export function queries(sql: Sql) {
       return sql<BlockedAttempt[]>`select * from blocked_attempts order by at desc limit ${limit}`;
     },
 
+    async insertBlockedAttempt(attempt: { fromAddress: string | null; toAddress: string | null; amount: string | null; reason: string }) {
+      const [row] = await sql<BlockedAttempt[]>`insert into blocked_attempts ${sql(attempt)} returning *`;
+      return row;
+    },
+
+    // Who put a wallet on the policy, or took it off, and in which transaction.
+    async insertPolicyChange(change: { wallet: string; allowed: boolean; txHash: string | null; actor: string }) {
+      const [row] = await sql<PolicyChange[]>`insert into policy_changes ${sql(change)} returning *`;
+      return row;
+    },
+
+    async policyChanges(limit = 200) {
+      return sql<PolicyChange[]>`select * from policy_changes order by at desc limit ${limit}`;
+    },
+
     async reserveChecks(limit = 20) {
       return sql<ReserveCheck[]>`select * from reserve_checks order by at desc limit ${limit}`;
+    },
+
+    // Reais already on their way out by Pix whose tBRL has not been burned yet. Between
+    // those two moments the supply is legitimately above the balance, and the reserve
+    // check has to know it.
+    async inFlightBrl() {
+      const [row] = await sql<{ total: string }[]>`
+        select coalesce(sum(amount_brl), 0)::text as total from withdrawals
+        where status in ('PIX_ENVIADO', 'PIX_CONFIRMADO', 'QUEIMADO')`;
+      return BigInt(row?.total ?? '0');
+    },
+
+    async insertReserveCheck(check: { supply: string; balanceBrl: string; ok: boolean }) {
+      const [row] = await sql<ReserveCheck[]>`insert into reserve_checks ${sql(check)} returning *`;
+      return row;
+    },
+
+    async lastReserveCheck() {
+      const [row] = await sql<ReserveCheck[]>`select * from reserve_checks order by at desc limit 1`;
+      return row ?? null;
+    },
+
+    // The last time the token was paused or unpaused, as the chain recorded it.
+    async lastPauseChange() {
+      const [row] = await sql<ChainEvent[]>`
+        select * from chain_events where event = 'PauseStateUpdate'
+        order by block_number desc, log_index desc limit 1`;
+      return row ? { at: row.blockTime, paused: row.args.isPaused === true, txHash: row.txHash } : null;
     },
 
     async setAutoWithdraw(userId: string, on: boolean) {

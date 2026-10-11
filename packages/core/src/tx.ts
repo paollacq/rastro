@@ -61,6 +61,22 @@ export async function waitBriefly(ctx: Context, hash: Hash, ms = 20_000): Promis
   }
 }
 
+// A contract call that is not part of the withdrawal's money path: the policy, the pause,
+// the deliberate mint of the demo. Plain transactions, so the same code runs on Tempo and on
+// a local EVM, and the receipt is checked before anything else happens.
+export async function writeAndWait(
+  ctx: Context,
+  role: Role,
+  request: { address: Address; abi: unknown; functionName: string; args: readonly unknown[] },
+  what: string,
+): Promise<Hash> {
+  const { wallet } = ctx.signer(role);
+  const hash = (await wallet.writeContract(request as never)) as Hash;
+  const receipt = await ctx.client.waitForTransactionReceipt({ hash });
+  if (receipt.status !== 'success') throw new Error(`${what} reverteu: ${hash}`);
+  return hash;
+}
+
 async function push(ctx: Context, raw: Hex) {
   try {
     await ctx.client.sendRawTransaction({ serializedTransaction: raw });

@@ -1,4 +1,4 @@
-import { trace } from '@rastro/core';
+import { effectivePixMode, trace } from '@rastro/core';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Erro } from '../../../components/erro';
@@ -20,12 +20,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 // Portuguese with the English under each.
 export default async function TracePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const mode = await load(() => effectivePixMode(context()));
   const loaded = await load(() => trace(context(), id));
   if (loaded.ok && !loaded.data) notFound();
 
   return (
     <>
-      <Faixa lang="pt" mode={currentPixMode()} />
+      <Faixa lang="pt" mode={mode.ok ? mode.data : currentPixMode()} />
       <main className="pagina pagina--media">
         <header className="topo">
           <Marca />

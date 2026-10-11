@@ -3,9 +3,10 @@ import type { InvoiceItem, Withdrawal } from '@rastro/db';
 import { toCents } from '@rastro/pix';
 import { isAddressEqual, type Address, type Hex } from 'viem';
 import { Abis } from 'viem/tempo';
-import { pixMode, type Context } from './context.ts';
+import type { Context } from './context.ts';
 import { shortError } from './errors.ts';
 import { BASE_PER_CENT, baseToBrl, floorToCents } from './money.ts';
+import { activePix, effectivePixMode } from './pix-mode.ts';
 import { QUOTE_SECONDS } from './quote.ts';
 import { trace, type Trace } from './trace.ts';
 
@@ -78,7 +79,7 @@ export async function invoiceView(ctx: Context, number: string): Promise<Invoice
         }
       : null,
     quoteSeconds: QUOTE_SECONDS,
-    pixMode: pixMode(),
+    pixMode: await effectivePixMode(ctx),
   };
 }
 
@@ -180,7 +181,7 @@ export async function walletView(ctx: Context, userId: string): Promise<WalletVi
       };
     }),
     withdrawals: summaries,
-    pixMode: pixMode(),
+    pixMode: await effectivePixMode(ctx),
   };
 }
 
@@ -270,6 +271,8 @@ export interface AllowlistEntry {
   identified: Read<boolean>;
   since: string | null;
   tx: string | null;
+  // Who asked for it, when it was us: "cadastro cliente-x7k2m9" or the setup script.
+  by: string | null;
 }
 
 export interface AllowlistView {
@@ -284,7 +287,11 @@ export async function allowlistView(ctx: Context): Promise<AllowlistView> {
   const { policyId } = ctx.addresses;
   if (policyId === undefined) return { policyId: null, registry: tip403Registry, entries: [] };
 
-  const [events, users] = await Promise.all([ctx.db.policyEvents(tip403Registry, policyId.toString()), ctx.db.users()]);
+  const [events, users, changes] = await Promise.all([
+    ctx.db.policyEvents(tip403Registry, policyId.toString()),
+    ctx.db.users(),
+    ctx.db.policyChanges(),
+  ]);
   const wallets = new Map<string, { since: string | null; tx: string | null }>();
   for (const event of events) {
     if (!event.toAddress) continue;
@@ -304,7 +311,8 @@ export async function allowlistView(ctx: Context): Promise<AllowlistView> {
           : user
             ? { kind: 'cliente', name: user.name }
             : { kind: 'outro', name: null };
-      return { wallet, holder, identified: await isIdentified(ctx, wallet as Address), since, tx };
+      const asked = changes.find((change) => change.wallet.toLowerCase() === wallet && change.allowed);
+      return { wallet, holder, identified: await isIdentified(ctx, wallet as Address), since, tx, by: asked?.actor ?? null };
     }),
   );
   // On the list first, then by when they joined.
@@ -339,24 +347,33 @@ export interface ReservesView {
   supply: Read<string>;
   balance: Read<string>;
   provider: 'payzu-sandbox' | 'simulator';
+  // Already paid out by Pix, with the tBRL still waiting to be burned.
+  inFlight: string;
   // Reais of tBRL with no reais behind them; "0.00" when the reserve covers the supply.
   shortfall: string | null;
   paused: Read<boolean>;
+  // When the chain recorded the last pause or unpause, and which transaction did it.
+  pausedAt: string | null;
+  pauseTx: string | null;
   checks: { at: string; supply: string; balanceBrl: string; ok: boolean }[];
 }
 
 // The invariant: tBRL in circulation never exceeds the reais in the Pix account.
 export async function reservesView(ctx: Context): Promise<ReservesView> {
-  const [supply, balance, paused, checks] = await Promise.all([
+  const pix = await activePix(ctx);
+  const [supply, balance, paused, checks, lastPause, inFlight] = await Promise.all([
     attempt(() => ctx.client.readContract({ address: ctx.addresses.tbrl, abi: Abis.tip20, functionName: 'totalSupply' })),
-    attempt(() => ctx.pix.balance()),
+    attempt(() => pix.balance()),
     attempt(() => ctx.client.readContract({ address: ctx.addresses.tbrl, abi: Abis.tip20, functionName: 'paused' })),
     ctx.db.reserveChecks(),
+    ctx.db.lastPauseChange(),
+    ctx.db.inFlightBrl(),
   ]);
 
   let shortfall: string | null = null;
   if (supply.ok && balance.ok) {
-    const backed = toCents(balance.value.availableBrl) * BASE_PER_CENT;
+    // Plus whatever Pix has already paid out and the burn has not caught up with yet.
+    const backed = toCents(balance.value.availableBrl) * BASE_PER_CENT + inFlight;
     // Rounded up: a fraction of a centavo without backing still breaks the invariant.
     const missing = supply.value > backed ? supply.value - backed : 0n;
     shortfall = baseToBrl(missing + ((BASE_PER_CENT - (missing % BASE_PER_CENT)) % BASE_PER_CENT));
@@ -365,9 +382,12 @@ export async function reservesView(ctx: Context): Promise<ReservesView> {
   return {
     supply: supply.ok ? { ok: true, value: exactReais(supply.value) } : supply,
     balance: balance.ok ? { ok: true, value: balance.value.availableBrl } : balance,
-    provider: ctx.pix.name,
+    provider: pix.name,
+    inFlight: baseToBrl(floorToCents(inFlight)),
     shortfall,
     paused,
+    pausedAt: lastPause?.paused ? iso(lastPause.at) : null,
+    pauseTx: lastPause?.paused ? lastPause.txHash : null,
     checks: checks.map((c) => ({
       at: c.at.toISOString(),
       supply: exactReais(BigInt(c.supply)),

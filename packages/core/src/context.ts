@@ -5,7 +5,9 @@ import type { Address, LocalAccount } from 'viem';
 import { newId } from './money.ts';
 import { simulatorStore } from './sim-store.ts';
 
-export type Role = Exclude<KeyRole, 'admin'>;
+// The admin key signs the policy and pause calls (Etapa 4), so the server holds it too.
+// In production those belong behind a multisig, not in one process's environment.
+export type Role = KeyRole;
 export type ChainClient = ReturnType<typeof publicClient>;
 export type Wallet = ReturnType<typeof walletClient>;
 

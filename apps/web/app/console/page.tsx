@@ -8,6 +8,7 @@ import {
   type BlockedView,
   type OperationRow,
   type ReservesView,
+  effectivePixMode,
 } from '@rastro/core';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ import { PolicyBadge } from '../../components/policy-badge';
 import { ReserveGauge } from '../../components/reserve-gauge';
 import { TxLink } from '../../components/tx-link';
 import { context } from '../../lib/api';
-import { amount, dateTime, money, percentFromBps, rate, shortDateTime } from '../../lib/format';
+import { amount, dateTime, money, percentFromBps, rate, shortDateTime, timeOnly } from '../../lib/format';
 import { currentPixMode, load } from '../../lib/load';
 import { STATUS } from '../../lib/words';
 
@@ -39,10 +40,11 @@ type Tab = (typeof TABS)[number]['id'];
 export default async function ConsolePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const asked = (await searchParams).tab;
   const tab: Tab = TABS.some((t) => t.id === asked) ? (asked as Tab) : 'operations';
+  const mode = await load(() => effectivePixMode(context()));
 
   return (
     <div lang="en">
-      <Faixa lang="en" mode={currentPixMode()} />
+      <Faixa lang="en" mode={mode.ok ? mode.data : currentPixMode()} />
       <main className="pagina pagina--larga">
         <header className="topo">
           <Marca rotulo="rastro, home" />
@@ -224,9 +226,14 @@ async function Allowlist() {
   }
   return (
     <section aria-labelledby="allow">
-      <h1 id="allow" style={{ fontSize: 'var(--t18)' }}>
-        Policy {policyId}: identified wallets
-      </h1>
+      <div className="linha-valor" style={{ alignItems: 'center', marginBottom: 4, flexWrap: 'wrap' }}>
+        <h1 id="allow" style={{ fontSize: 'var(--t18)' }}>
+          Policy {policyId}: identified wallets
+        </h1>
+        <Link className="botao botao--secundario" href="/cadastro">
+          Add a client
+        </Link>
+      </div>
       <p className="mudo" style={{ marginTop: 4, marginBottom: 16, maxWidth: 680 }}>
         A whitelist on Tempo&apos;s TIP-403 registry. tBRL only moves between wallets on it: the chain refuses any other
         transfer before it happens. A client gets on it after the cadastro (CPF checked, chave Pix on file).
@@ -248,7 +255,14 @@ async function Allowlist() {
                 <td>
                   <TxLink hash={e.wallet} kind="address" explorer={explorer} lang="en" />
                 </td>
-                <td>{e.holder.kind === 'cliente' ? `${e.holder.name}, client` : HOLDER[e.holder.kind]}</td>
+                <td>
+                  {e.holder.kind === 'cliente' ? `${e.holder.name}, client` : HOLDER[e.holder.kind]}
+                  {e.by && (
+                    <span className="mudo" style={{ display: 'block' }}>
+                      added by {e.by}
+                    </span>
+                  )}
+                </td>
                 <td>
                   <PolicyBadge identified={e.identified} policyId={policyId} lang="en" />
                 </td>
@@ -325,17 +339,30 @@ async function Reserves() {
         </Erro>
       ) : (
         <>
-          <ReserveGauge supply={r.supply.value} balance={r.balance.value} lang="en" />
+          <ReserveGauge supply={r.supply.value} balance={r.balance.value} inFlight={r.inFlight} lang="en" />
           <p style={{ marginTop: 20, fontWeight: 600, color: r.shortfall === '0.00' ? 'var(--conferido)' : 'var(--recusa)' }}>
             {r.shortfall === '0.00'
               ? 'Match. Every tBRL in circulation has a real behind it.'
               : `Supply exceeds BRL in account by ${money(r.shortfall ?? '0', 'BRL', 'en')}.`}
+            {r.paused.ok && r.paused.value && r.pausedAt && ` Minting paused at ${timeOnly(r.pausedAt)}.`}
           </p>
         </>
       )}
       {r.paused.ok && (
         <p className="mudo" style={{ marginTop: 6 }}>
-          {r.paused.value ? 'tBRL is paused on-chain: no transfers, mints or burns until it is unpaused.' : 'tBRL is not paused.'}
+          {r.paused.value ? (
+            <>
+              tBRL is paused on-chain: no transfers, mints or burns until it is unpaused.
+              {r.pauseTx && (
+                <>
+                  {' '}
+                  <TxLink hash={r.pauseTx} explorer={explorer} lang="en" />
+                </>
+              )}
+            </>
+          ) : (
+            'tBRL is not paused.'
+          )}
         </p>
       )}
       {r.checks.length > 0 && (
