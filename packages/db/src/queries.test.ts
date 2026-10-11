@@ -77,4 +77,62 @@ describe.skipIf(!url)('queries', () => {
     await q.setState('cursor', '200');
     expect(await q.state('cursor')).toBe('200');
   });
+
+  it('stores invoice lines as JSON and keeps the first time an invoice was paid', async () => {
+    await q.upsertInvoice({
+      id: 'fatura-0047', number: '0047', payerName: 'Bramble & Pike Software, Inc.', payerWallet: '0x00000000000000000000000000000000000000b1',
+      recipientId: 'ana', description: 'Backend, setembro: 28 h × US$ 55', amountUsd: '1540.00',
+      items: [{ description: 'Backend work, September', hours: 28, rateUsd: '55.00' }],
+    });
+    expect((await q.invoiceByNumber('0047'))?.items).toEqual([{ description: 'Backend work, September', hours: 28, rateUsd: '55.00' }]);
+    await q.setQuoteFill('cot-1', '0xFILL');
+    await q.markInvoicePaid('fatura-0047', new Date('2026-10-10T21:05:00Z'));
+    await q.markInvoicePaid('fatura-0047', new Date('2026-10-10T21:09:00Z')); // the watcher, later
+    expect((await q.invoice('fatura-0047'))?.paidAt?.toISOString()).toBe('2026-10-10T21:05:00.000Z');
+  });
+
+  it('lists conversions with their withdrawal, and withdrawals on their own, newest first', async () => {
+    await q.insertWithdrawal({ id: 'saque-avulso01', userId: 'ana', invoiceId: null, amountBrl: '150000000' }, 'pedido');
+    const ops = await q.operations();
+    expect(ops.map((op) => [op.kind, op.withdrawalId])).toEqual([
+      ['saque', 'saque-avulso01'],
+      ['conversao', 'saque-test0001'],
+    ]);
+    expect(ops[1]).toMatchObject({ clientName: 'Ana Ribeiro', usdIn: '1540000000', brlOut: '8293260000', ptaxRate: '5.4123', fillTx: '0xFILL' });
+    expect(await q.operations({ to: new Date('2026-10-10T00:00:00Z') })).toEqual([]);
+    expect((await q.paymentsTo('ana')).map((p) => p.invoiceId)).toEqual(['fatura-0047']);
+  });
+
+  it('allows one withdrawal in flight per invoice', async () => {
+    const second = { id: 'saque-test0002', userId: 'ana', invoiceId: 'fatura-0047', amountBrl: '1000000' };
+    await expect(q.insertWithdrawal(second, 'pedido')).rejects.toMatchObject({ code: '23505' });
+    await q.advance('saque-test0001', 'TBRL_NA_TESOURARIA', 'FALHOU', {}, 'recusado');
+    await expect(q.insertWithdrawal(second, 'pedido')).rejects.toMatchObject({ code: '23505' });
+    await q.advance('saque-test0001', 'FALHOU', 'DEVOLVIDO', {}, 'devolvido');
+    await expect(q.insertWithdrawal(second, 'pedido')).resolves.toMatchObject({ status: 'SOLICITADO' });
+  });
+
+  it('withdraws automatically only what was paid after it was turned on, once', async () => {
+    const since = (await q.setAutoWithdraw('ana', true))?.autoWithdrawSince;
+    expect(since).toBeInstanceOf(Date);
+    expect((await q.setAutoWithdraw('ana', true))?.autoWithdrawSince).toEqual(since); // switching it on again keeps the date
+    await q.upsertInvoice({ id: 'fatura-0048', number: '0048', payerName: 'Bramble & Pike Software, Inc.', payerWallet: '0x00000000000000000000000000000000000000b1', recipientId: 'ana', description: 'Backend, outubro', amountUsd: '880.00' });
+    await q.insertQuote({
+      id: 'cot-2', invoiceId: 'fatura-0048', payer: '0x00000000000000000000000000000000000000b1', recipient: '0xAbC0000000000000000000000000000000000001',
+      ptaxDate: '2026-10-09', ptaxRate: '5.4123', spreadBps: 50, usdIn: '880000000', brlOut: '4739000000', invoiceRef: 'fatura-0048',
+      nonce: '42', expiry: new Date(), signature: '0xsig',
+    });
+    expect(await q.autoWithdrawDue()).toEqual([]); // not paid yet; 0047 was paid before
+    await q.setQuoteFill('cot-2', '0xfill2');
+    await q.markInvoicePaid('fatura-0048', new Date(Date.now() + 1_000));
+    expect(await q.autoWithdrawDue()).toEqual([{ invoiceId: 'fatura-0048', userId: 'ana', brlOut: '4739000000' }]);
+    await q.insertWithdrawal({ id: 'saque-auto0001', userId: 'ana', invoiceId: 'fatura-0048', amountBrl: '4739000000' }, 'automático');
+    expect(await q.autoWithdrawDue()).toEqual([]);
+    expect((await q.setAutoWithdraw('ana', false))?.autoWithdrawSince).toBeNull();
+  });
+
+  it('keeps one waitlist entry per address', async () => {
+    expect(await q.joinWaitlist({ email: 'alguem@example.com', relation: 'recebo', lang: 'pt' })).toBe(true);
+    expect(await q.joinWaitlist({ email: 'alguem@example.com', relation: null, lang: 'en' })).toBe(false);
+  });
 });

@@ -20,8 +20,15 @@ await q.upsertUser({
   pixKeyType: 'email',
   pixKeyMasked: 'a•••@example.com',
   kycStatus: 'aprovado',
+  city: 'Recife',
 });
-await q.upsertUser({ id: 'bramble-pike', role: 'pagador', name: 'Bramble & Pike Software, Inc.', wallet: payer.address });
+await q.upsertUser({
+  id: 'bramble-pike',
+  role: 'pagador',
+  name: 'Bramble & Pike Software, Inc.',
+  wallet: payer.address,
+  city: 'Austin, Texas',
+});
 await q.upsertInvoice({
   id: 'fatura-0047',
   number: '0047',
@@ -29,6 +36,7 @@ await q.upsertInvoice({
   payerWallet: payer.address,
   recipientId: 'ana',
   description: 'Backend, setembro: 28 h × US$ 55',
+  items: [{ description: 'Backend work, September', hours: 28, rateUsd: '55.00' }],
   amountUsd: '1540.00',
 });
 

@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./trail": "./src/trail.ts"
   },
   "scripts": {
     "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",

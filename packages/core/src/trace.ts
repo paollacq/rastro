@@ -11,7 +11,9 @@ import { baseToBrl } from './money.ts';
 export interface TraceWithdrawal {
   id: string;
   status: Withdrawal['status'];
+  createdAt: Date;
   amountBrl: string;
+  pixKeyMasked: string | null;
   provider: string | null;
   e2eId: string | null;
   e2eFormat: 'official' | 'sandbox' | null;
@@ -26,7 +28,17 @@ export interface TraceWithdrawal {
 
 export interface Trace {
   explorer: string;
-  invoice: { id: string; number: string; payerName: string; description: string; amountUsd: string; status: string } | null;
+  invoice: {
+    id: string;
+    number: string;
+    payerName: string;
+    recipientName: string | null;
+    description: string;
+    amountUsd: string;
+    status: string;
+    issuedAt: Date;
+    paidAt: Date | null;
+  } | null;
   quote: { id: string; ptaxRate: string; ptaxDate: string; spreadBps: number; usdIn: string; brlOut: string; expiresAt: string; fillTx: string | null } | null;
   payment: ChainEvent[];
   withdrawals: TraceWithdrawal[];
@@ -48,6 +60,7 @@ export async function trace(ctx: Context, id: string): Promise<Trace | null> {
   }
 
   const invoice = invoiceId ? await ctx.db.invoice(invoiceId) : null;
+  const recipient = invoice ? await ctx.db.user(invoice.recipientId) : null;
   const quotes = invoiceId ? await ctx.db.quotesForInvoice(invoiceId) : [];
   const quote = quotes.find((q) => q.fillTx) ?? quotes.at(-1) ?? null;
   const payment = quote?.fillTx ? await ctx.db.chainEventsForTxs([quote.fillTx]) : [];
@@ -58,9 +71,12 @@ export async function trace(ctx: Context, id: string): Promise<Trace | null> {
       id: invoice.id,
       number: invoice.number,
       payerName: invoice.payerName,
+      recipientName: recipient?.name ?? null,
       description: invoice.description,
       amountUsd: invoice.amountUsd,
       status: invoice.status,
+      issuedAt: invoice.createdAt,
+      paidAt: invoice.paidAt,
     },
     quote: quote && {
       id: quote.id,
@@ -79,7 +95,12 @@ export async function trace(ctx: Context, id: string): Promise<Trace | null> {
 
 async function traceWithdrawal(ctx: Context, w: Withdrawal): Promise<TraceWithdrawal> {
   const txs = [w.transferTx, w.burnTx, w.refundTx].filter((hash): hash is string => Boolean(hash));
-  const [steps, events, pix] = await Promise.all([ctx.db.steps(w.id), ctx.db.chainEventsForTxs(txs), ctx.db.pixEvents({ reference: w.id })]);
+  const [steps, events, pix, user] = await Promise.all([
+    ctx.db.steps(w.id),
+    ctx.db.chainEventsForTxs(txs),
+    ctx.db.pixEvents({ reference: w.id }),
+    ctx.db.user(w.userId),
+  ]);
   const memoEvents = (hash: string | null) =>
     hash ? events.filter((event) => event.txHash === hash.toLowerCase() && event.event === 'TransferWithMemo') : [];
   const burn = memoEvents(w.burnTx);
@@ -87,7 +108,9 @@ async function traceWithdrawal(ctx: Context, w: Withdrawal): Promise<TraceWithdr
   return {
     id: w.id,
     status: w.status,
+    createdAt: w.createdAt,
     amountBrl: baseToBrl(BigInt(w.amountBrl)),
+    pixKeyMasked: user?.pixKeyMasked ?? null,
     provider: w.provider,
     e2eId: w.e2eId,
     e2eFormat: w.e2eId ? endToEndFormat(w.e2eId) : null,

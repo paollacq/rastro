@@ -1,5 +1,10 @@
+/* Rastro's look, from the design tab of the plan: paper, ink and one blue, the stamp's.
+   Green, amber and red only ever mean a step's state. Two things move in the whole product:
+   the ID lighting up and the stamp landing. */
+
 :root {
   --papel: #f6f4ee;
+  --folha: #fcfbf8; /* the receipt: a lighter slip of paper on the desk */
   --tinta: #1c1b19;
   --grafite: #6b6860;
   --linha: #ddd8cc;
@@ -7,6 +12,18 @@
   --conferido: #2e7d4f;
   --pendente: #b7791f;
   --recusa: #a63d32;
+
+  --aceso: color-mix(in srgb, var(--conferido) 11%, transparent);
+  --vazio: color-mix(in srgb, var(--linha) 45%, transparent);
+
+  --t13: 13px;
+  --t15: 15px;
+  --t18: 18px;
+  --t24: 24px;
+  --t32: 32px;
+
+  --sans: var(--font-sans), 'Helvetica Neue', Arial, sans-serif;
+  --mono: var(--font-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 
 *,
@@ -18,46 +35,852 @@
 html {
   background: var(--papel);
   color: var(--tinta);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: 15px;
+  background: var(--papel);
+  font-family: var(--sans);
+  font-size: var(--t15);
   line-height: 1.5;
-}
-
-.mono {
-  font-family: var(--font-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Always on screen, so nobody mistakes the demo for real money. */
-.faixa {
+h1,
+h2,
+h3,
+p,
+ol,
+ul,
+dl,
+dd,
+figure {
   margin: 0;
-  padding: 6px 16px;
-  border-bottom: 1px solid var(--linha);
-  color: var(--grafite);
-  font-size: 13px;
-  text-align: center;
 }
 
-.inicio {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 96px 16px;
-}
-
-.marca {
-  margin: 0 0 8px;
-  font-size: 32px;
+h1 {
+  font-size: var(--t24);
   font-weight: 600;
+  line-height: 1.2;
   letter-spacing: -0.01em;
 }
 
-.marca::after {
-  content: '···';
-  margin-left: 2px;
+h2 {
+  font-size: var(--t18);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+a {
   color: var(--carimbo);
-  letter-spacing: 0.12em;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--carimbo);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.mono,
+.valor--mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.valor {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mudo {
+  color: var(--grafite);
+}
+
+.pequeno {
+  font-size: var(--t13);
+}
+
+/* --- Warning strip, on every screen ----------------------------------------------------- */
+
+.faixa {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 7px 16px;
+  background: var(--tinta);
+  color: var(--papel);
+  font-size: var(--t13);
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* --- Page and header ---------------------------------------------------------------------- */
+
+.pagina {
+  width: 100%;
+  max-width: calc(600px + 32px);
+  margin: 0 auto;
+  padding: 0 16px 96px;
+}
+
+.pagina--media {
+  max-width: calc(720px + 32px);
+}
+
+.pagina--larga {
+  max-width: calc(1120px + 32px);
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 0 40px;
+}
+
+.topo__lado {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  font-size: var(--t13);
+  color: var(--grafite);
+}
+
+/* The wordmark: "rastro" and a trail of three dots out of the last o. A stand-in until the
+   team's drawing replaces it. */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1em;
+  color: var(--tinta);
+  font-size: var(--t18);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-decoration: none;
+}
+
+.marca svg {
+  width: 1.05em;
+  height: 0.5em;
+  margin-top: 0.12em;
+}
+
+.marca--grande {
+  font-size: var(--t32);
+}
+
+/* --- Buttons and fields ------------------------------------------------------------------ */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--tinta);
+  border-radius: 4px;
+  background: var(--tinta);
+  color: var(--papel);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.botao:hover {
+  background: #33312d;
+}
+
+.botao:disabled,
+.botao[aria-disabled='true'] {
+  background: var(--linha);
+  border-color: var(--linha);
+  color: var(--grafite);
+  cursor: not-allowed;
+}
+
+.botao--cheio {
+  width: 100%;
+}
+
+.botao--secundario {
+  min-height: 40px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--tinta);
+}
+
+.botao--secundario:hover {
+  background: color-mix(in srgb, var(--tinta) 6%, transparent);
+}
+
+.campo {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  background: var(--folha);
+}
+
+.campo:focus-visible {
+  outline: 2px solid var(--carimbo);
+  outline-offset: 0;
+  border-color: var(--carimbo);
+}
+
+.campo[aria-invalid='true'] {
+  border-color: var(--recusa);
+}
+
+.rotulo {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* --- Messages ---------------------------------------------------------------------------- */
+
+.aviso,
+.erro {
+  padding: 12px 14px;
+  border-left: 3px solid var(--carimbo);
+  background: color-mix(in srgb, var(--carimbo) 6%, transparent);
+}
+
+.erro {
+  border-left-color: var(--recusa);
+  background: color-mix(in srgb, var(--recusa) 6%, transparent);
+}
+
+.erro__motivo {
+  margin-top: 4px;
+  color: var(--grafite);
+  font-family: var(--mono);
+  font-size: var(--t13);
+  overflow-wrap: anywhere;
+}
+
+/* --- Receipt ----------------------------------------------------------------------------- */
+
+.comprovante {
+  position: relative;
+  padding: 28px 28px 44px;
+  border: 1px solid var(--linha);
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--folha);
+}
+
+/* Perforated bottom edge: a tear line, then a row of half-punched holes. */
+.comprovante::before {
+  content: '';
+  position: absolute;
+  right: 18px;
+  bottom: 17px;
+  left: 18px;
+  border-top: 1px dashed var(--linha);
+}
+
+.comprovante::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -6px;
+  left: -1px;
+  height: 12px;
+  background: radial-gradient(circle at 7px 6px, var(--papel) 4.5px, transparent 5px) 0 0 / 14px 12px repeat-x;
+}
+
+.comprovante__cabeca {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+  font-size: var(--t13);
+  color: var(--grafite);
+}
+
+.tracejado {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px dashed var(--linha);
+}
+
+.linha-valor {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.linha-valor > .quando {
+  flex: none;
+  white-space: nowrap;
+}
+
+.linha-valor--total {
+  font-size: var(--t18);
+  font-weight: 600;
+}
+
+/* Plex Mono ships 400 and 500 here; 500 keeps the browser from faking a bold. */
+.linha-valor--total .valor--mono {
+  font-weight: 500;
+}
+
+/* --- Trail ------------------------------------------------------------------------------- */
+
+.trilha {
+  list-style: none;
+  padding: 0;
+}
+
+.passo {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 16px;
+  padding: 0 0 22px 30px;
+}
+
+.passo:last-child {
+  padding-bottom: 0;
+}
+
+/* the line down to the next step */
+.passo::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  bottom: -2px;
+  left: 6px;
+  width: 2px;
+  background: var(--linha);
+}
+
+.passo:last-child::before {
+  display: none;
+}
+
+/* green as far as the money got: up to the step in progress, gray after it */
+.passo--feito:has(+ .passo--feito)::before,
+.passo--feito:has(+ .passo--agora)::before,
+.passo--feito:has(+ .passo--falhou)::before {
+  background: var(--conferido);
+}
+
+.passo__ponto {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--linha);
+  border-radius: 50%;
+  background: var(--folha);
+}
+
+.passo--feito .passo__ponto {
+  border-color: var(--conferido);
+  background: var(--conferido);
+}
+
+.passo--agora .passo__ponto {
+  border-color: var(--pendente);
+  background: radial-gradient(circle, var(--pendente) 3px, var(--folha) 3.5px);
+}
+
+.passo--falhou .passo__ponto {
+  border-color: var(--recusa);
+  background: var(--recusa);
+}
+
+.passo__titulo {
+  font-weight: 600;
+}
+
+.passo--esperando .passo__titulo {
+  color: var(--grafite);
+  font-weight: 400;
+}
+
+.passo__traducao {
+  color: var(--grafite);
+  font-size: var(--t13);
+}
+
+.passo__hora {
+  grid-column: 2;
+  grid-row: 1;
+  color: var(--grafite);
+  font-family: var(--mono);
+  font-size: var(--t13);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.passo__detalhe {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  font-size: var(--t13);
+  overflow-wrap: anywhere;
+}
+
+/* Amber is light for 13px text, so words in progress take it mixed with ink. */
+.passo__estado {
+  color: color-mix(in srgb, var(--pendente) 65%, var(--tinta));
+}
+
+.passo--falhou .passo__estado {
+  color: var(--recusa);
+}
+
+.compacta .passo {
+  padding-bottom: 14px;
+}
+
+/* --- Pix ID against the memo ------------------------------------------------------------- */
+
+.comparacao {
+  position: relative;
+}
+
+.id-linha {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 10px;
+}
+
+.id-linha__rotulo {
+  font-size: var(--t13);
+  line-height: 1.3;
+}
+
+.id-bloco {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-family: var(--mono);
+  font-size: var(--t15);
+}
+
+.id-bloco__grupo {
+  display: flex;
+}
+
+.id-bloco__c {
+  display: inline-block;
+  width: 1.15ch;
+  padding: 3px 0;
+  text-align: center;
+  border-radius: 2px;
+}
+
+.id-bloco__c--vazio {
+  color: var(--linha);
+}
+
+/* Each pair lights up left to right, about 600 ms for 32 characters. */
+.comparacao--conferida .id-bloco__c:not(.id-bloco__c--vazio) {
+  animation: acende 140ms ease-out both;
+  animation-delay: calc(var(--i) * 18ms + 250ms);
+}
+
+.comparacao--diferente .id-bloco__c--diferente {
+  background: color-mix(in srgb, var(--recusa) 16%, transparent);
+  color: var(--recusa);
+}
+
+@keyframes acende {
+  from {
+    background: transparent;
+  }
+  to {
+    background: var(--aceso);
+    color: var(--conferido);
+  }
+}
+
+.comparacao__fim {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  margin-top: 18px;
+}
+
+.comparacao__fim > div {
+  max-width: 420px;
+}
+
+/* --- The stamp ------------------------------------------------------------------------------ */
+
+.carimbo {
+  display: inline-block;
+  padding: 8px 16px 9px;
+  border: 4px double var(--carimbo);
+  border-radius: 6px;
+  color: var(--carimbo);
+  text-align: center;
+  transform: rotate(-6deg);
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+}
+
+.carimbo__palavra {
+  display: block;
+  font-size: var(--t24);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.carimbo__data {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: var(--t13);
+}
+
+.carimbo--entra {
+  animation:
+    baque 180ms cubic-bezier(0.3, 0, 0.6, 1) both,
+    tremor 120ms linear 180ms;
+  animation-delay: 950ms, 1130ms;
+}
+
+@keyframes baque {
+  from {
+    opacity: 0;
+    transform: rotate(-6deg) scale(1.4);
+  }
+  to {
+    opacity: 0.92;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+@keyframes tremor {
+  25% {
+    transform: rotate(-6deg) translate(2px, 1px);
+  }
+  50% {
+    transform: rotate(-6deg) translate(-2px, -1px);
+  }
+  75% {
+    transform: rotate(-6deg) translate(1px, -1px);
+  }
+}
+
+.comparacao .carimbo {
+  flex: none;
+  margin-right: 8px;
+}
+
+/* --- Policy badge ------------------------------------------------------------------------- */
+
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t13);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.selo::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.selo--sim {
+  color: var(--conferido);
+}
+
+.selo--nao {
+  color: var(--recusa);
+}
+
+.selo--talvez {
+  color: var(--grafite);
+}
+
+/* --- Rows (statement and lists) ------------------------------------------------------------- */
+
+.linhas {
+  list-style: none;
+  padding: 0;
+  border-top: 1px solid var(--linha);
+}
+
+.linhas > li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--linha);
+}
+
+.secao {
+  margin-top: 48px;
+}
+
+.secao > h2 {
+  margin-bottom: 12px;
+}
+
+/* --- Tables (console) --------------------------------------------------------------------- */
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border-top: 1px solid var(--tinta);
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t13);
+}
+
+.tabela--curta {
+  max-width: 760px;
+}
+
+.tabela th,
+.tabela td {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--linha);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela th {
+  color: var(--grafite);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabela .num {
+  text-align: right;
+}
+
+.tabela td.num {
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+.tx {
+  white-space: nowrap;
+}
+
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.abas a {
+  display: inline-block;
+  padding: 8px 0 10px;
+  color: var(--grafite);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.abas a[aria-current='page'] {
+  color: var(--tinta);
+  font-weight: 600;
+  border-bottom-color: var(--tinta);
+}
+
+/* --- Reserve gauge ------------------------------------------------------------------------ */
+
+.medidor {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  align-items: center;
+  gap: 10px 20px;
+  max-width: 760px;
+}
+
+.medidor__barra {
+  position: relative;
+  height: 8px;
+  background: var(--vazio);
+}
+
+.medidor__barra span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--tinta);
+}
+
+.medidor__barra--conta span {
+  background: var(--grafite);
+}
+
+.medidor__barra .medidor__excesso {
+  background: var(--recusa);
+}
+
+/* --- Switch ------------------------------------------------------------------------------- */
+
+.chave {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.chave input {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border: 1px solid var(--grafite);
+  border-radius: 12px;
+  background: var(--folha);
+  cursor: pointer;
+}
+
+.chave input::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--grafite);
+}
+
+.chave input:checked {
+  border-color: var(--conferido);
+  background: var(--conferido);
+}
+
+.chave input:checked::after {
+  left: 19px;
+  background: var(--folha);
+}
+
+/* --- Loading ------------------------------------------------------------------------------ */
+
+/* Still on purpose: the only things that move are the ID and the stamp. */
+.esqueleto {
+  display: block;
+  height: 1em;
+  border-radius: 2px;
+  background: var(--vazio);
+}
+
+/* --- Footer ------------------------------------------------------------------------------- */
+
+.rodape {
+  margin-top: 72px;
+  padding-top: 20px;
+  border-top: 1px solid var(--linha);
+  color: var(--grafite);
+  font-size: var(--t13);
+}
+
+.rodape a {
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  .topo {
+    padding: 16px 0 28px;
+  }
+
+  .comprovante {
+    padding: 20px 16px 40px;
+  }
+
+  .id-linha {
+    grid-template-columns: 1fr;
+  }
+
+  /* One column on a phone: the time goes under the step's name instead of beside it. */
+  .passo {
+    grid-template-columns: 1fr;
+  }
+
+  .passo__hora {
+    grid-column: 1;
+    grid-row: auto;
+    padding-top: 0;
+  }
+
+  .comparacao__fim {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .comparacao .carimbo {
+    align-self: flex-end;
+  }
+
+  .id-bloco {
+    gap: 2px 6px;
+    font-size: var(--t13);
+  }
+
+  .id-bloco__c {
+    width: 1.05ch;
+  }
+
+  .medidor {
+    grid-template-columns: max-content 1fr;
+  }
+
+  .medidor__barra {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comparacao--conferida .id-bloco__c:not(.id-bloco__c--vazio) {
+    animation: none;
+    background: var(--aceso);
+    color: var(--conferido);
+  }
+
+  .carimbo--entra {
+    animation: none;
+  }
 }

@@ -6,6 +6,8 @@ import type { Context } from './context.ts';
 import { baseToBrl, brlToBase, floorToCents, newId } from './money.ts';
 import { burnMemo, refundMemoText } from './orchestrator.ts';
 import { clearPtaxCache, latestPtax, parsePtax, ptaxUrl } from './ptax.ts';
+import { brasiliaTime, operationsCsv } from './report.ts';
+import { effectiveRate, type OperationRow } from './views.ts';
 import { handlePixWebhook } from './webhook.ts';
 
 describe('money', () => {
@@ -23,6 +25,47 @@ describe('money', () => {
     const id = newId('saque');
     expect(id).toMatch(/^saque-[a-z0-9]{8}$/);
     expect(refundMemoText(id).length).toBeLessThanOrEqual(32);
+  });
+});
+
+describe('console rate', () => {
+  it('is reais paid out per dollar, PTAX less the spread after the centavo rounding', () => {
+    // 1,540.00 at 5.4123 less 0.50% = R$ 8,293.26
+    expect(effectiveRate('8293260000', '1540000000')).toBe('5.3852');
+    expect(effectiveRate('5000000', '1000000')).toBe('5.0000');
+  });
+});
+
+describe('operations report', () => {
+  const row: OperationRow = {
+    kind: 'conversao',
+    at: '2026-10-10T21:25:39.000Z',
+    client: { name: 'Ana Ribeiro', cpfMasked: '***.456.789-**', wallet: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8', pixKeyMasked: 'a•••@example.com' },
+    invoice: { id: 'fatura-0047', number: '0047', payerName: 'Bramble & Pike Software, Inc.', payerWallet: '0x90f79bf6eb2c4f870365e785982e1f101e93b906' },
+    usd: '1540.00',
+    ptax: { rate: '5.4123', date: '2026-10-09', spreadBps: 50 },
+    rate: '5.3852',
+    brl: '8293.26',
+    withdrawal: { id: 'saque-k3j9x2m1', status: 'CONCLUIDO', amountBrl: '8293.26', e2eId: 'E99999999202610111520SIMa1b2c3d4', provider: 'simulator' },
+    fillTx: '0xfill',
+    transferTx: '0xtransfer',
+    burnTx: '0xburn',
+  };
+
+  it('writes Brasília time with its offset', () => {
+    expect(brasiliaTime('2026-10-10T21:25:39.000Z')).toBe('2026-10-10T18:25:39-03:00');
+  });
+
+  it('quotes the fields that need it and leaves empty what does not apply', () => {
+    const [header, line, end] = operationsCsv([row, { ...row, kind: 'saque', invoice: null, usd: null, ptax: null, rate: null, brl: null, fillTx: null }]).split('\r\n');
+    expect(header.split(',')).toHaveLength(23);
+    expect(line).toBe(
+      '2026-10-10T18:25:39-03:00,conversion,Ana Ribeiro,***.456.789-**,0x70997970c51812dc3a010c7d01b50e0d17dc79c8,a•••@example.com,' +
+        '"Bramble & Pike Software, Inc.",0x90f79bf6eb2c4f870365e785982e1f101e93b906,fatura-0047,1540.00,2026-10-09,5.4123,50,5.3852,8293.26,' +
+        'saque-k3j9x2m1,CONCLUIDO,8293.26,E99999999202610111520SIMa1b2c3d4,simulator,0xfill,0xtransfer,0xburn',
+    );
+    expect(end.startsWith('2026-10-10T18:25:39-03:00,withdrawal,Ana Ribeiro,')).toBe(true);
+    expect(end.split(',').slice(6, 15)).toEqual(['', '', '', '', '', '', '', '', '']);
   });
 });
 

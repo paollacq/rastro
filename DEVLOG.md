@@ -2,6 +2,14 @@
 
 A few lines a day, newest on top: what broke, what we decided and why.
 
+## 2026-10-10, night
+
+- Etapa 3: the five screens, from the design tab. Tested on anvil + Postgres through the browser: invoice paid, Ana withdraws, the trail fills in live and the stamp lands; then a second invoice with automatic withdrawal on, which the worker sent out by Pix five seconds after the payment.
+- The two IDs went one over the other instead of side by side: with the columns lined up, each pair that lights up is visible as a pair (decision 0003).
+- A double click on "Sacar" could start two withdrawals of the same invoice. Now a unique index allows one in flight per invoice, and the button or the worker gets a 409.
+- The watcher now copies the TIP-403 whitelist events, with its own cursor, so the console's allowlist has dates and transactions without rereading the whole chain.
+- Reserves after both withdrawals: supply R$ 1,060.52, simulator R$ 1,060.52.
+
 ## 2026-10-10, evening
 
 - `pix:smoke` passed end to end (R$ 25 in, R$ 150 out, balance 10000 + 25 − 150 = 9875) but flagged both IDs: the sandbox returns 20-character IDs (`E` + unix time + 9 lowercase), not the official 32. Both formats are accepted now and the smoke prints which one it saw (decision 0002).

@@ -1,0 +1,48 @@
+import { trace } from '@rastro/core';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { Erro } from '../../../components/erro';
+import { Faixa } from '../../../components/faixa';
+import { Marca } from '../../../components/marca';
+import { context } from '../../../lib/api';
+import { currentPixMode, load } from '../../../lib/load';
+import { TraceView } from './trace-view';
+
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const invoice = /^fatura-(\d+)$/.exec(id);
+  return { title: invoice ? `Rastro da fatura #${invoice[1]}` : `Rastro do ${id}` };
+}
+
+// Public, by link: proof, step by step, that the money arrived and left a trail. Labels in
+// Portuguese with the English under each.
+export default async function TracePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const loaded = await load(() => trace(context(), id));
+  if (loaded.ok && !loaded.data) notFound();
+
+  return (
+    <>
+      <Faixa lang="pt" mode={currentPixMode()} />
+      <main className="pagina pagina--media">
+        <header className="topo">
+          <Marca />
+          <p className="topo__lado">Rastro · Trail</p>
+        </header>
+        {!loaded.ok || !loaded.data ? (
+          <Erro motivo={loaded.ok ? null : loaded.reason}>
+            Não deu para carregar este rastro. Recarregue em alguns segundos; se continuar, o banco está fora do ar.
+            <span lang="en" className="mudo" style={{ display: 'block' }}>
+              Couldn&apos;t load this trail. Reload in a few seconds.
+            </span>
+          </Erro>
+        ) : (
+          // Through JSON on purpose: the page and the polling hand the view the same shape.
+          <TraceView id={id} initial={JSON.parse(JSON.stringify(loaded.data))} />
+        )}
+      </main>
+    </>
+  );
+}

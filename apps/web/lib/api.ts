@@ -9,9 +9,9 @@ export async function handle<T>(work: () => Promise<T>): Promise<Response> {
   try {
     return Response.json(await work());
   } catch (error) {
-    if (error instanceof AppError) return Response.json({ error: error.message }, { status: error.status });
+    if (error instanceof AppError) return Response.json({ error: error.message, code: error.code }, { status: error.status });
     console.error(error);
-    return Response.json({ error: `algo deu errado do nosso lado: ${shortError(error)}` }, { status: 500 });
+    return Response.json({ error: `algo deu errado do nosso lado: ${shortError(error)}`, code: 'internal' }, { status: 500 });
   }
 }
 

@@ -26,7 +26,7 @@ export interface QuoteOffer {
 export async function createQuote(ctx: Context, invoiceId: string): Promise<QuoteOffer> {
   const invoice = await ctx.db.invoice(invoiceId);
   if (!invoice) throw notFound('fatura');
-  if (invoice.status === 'paga') throw new AppError(409, 'esta fatura já foi paga');
+  if (invoice.status === 'paga') throw new AppError(409, 'esta fatura já foi paga', 'invoice_paid');
   const recipient = await ctx.db.user(invoice.recipientId);
   if (!recipient) throw notFound('recebedora');
 
@@ -96,22 +96,22 @@ export async function payQuote(ctx: Context, quoteId: string): Promise<{ txHash:
   const row = await ctx.db.quote(quoteId);
   if (!row) throw notFound('cotação');
   if (row.fillTx) return { txHash: row.fillTx as Hash, alreadyPaid: true };
-  if ((await ctx.db.invoice(row.invoiceId))?.status === 'paga') throw new AppError(409, 'esta fatura já foi paga');
-  if (row.expiry.getTime() <= ctx.now().getTime()) throw new AppError(409, 'a cotação venceu; peça outra');
+  if ((await ctx.db.invoice(row.invoiceId))?.status === 'paga') throw new AppError(409, 'esta fatura já foi paga', 'invoice_paid');
+  if (row.expiry.getTime() <= ctx.now().getTime()) throw new AppError(409, 'a cotação venceu; peça outra', 'quote_expired');
 
   const payer = ctx.signer('payer');
   if (!isAddressEqual(payer.account.address, row.payer as Hex)) {
-    throw new AppError(403, 'esta demo só paga com a carteira de PAYER_PRIVATE_KEY');
+    throw new AppError(403, 'esta demo só paga com a carteira de PAYER_PRIVATE_KEY', 'wrong_payer');
   }
 
   // One payment per invoice at a time: a double click gets a 409, not a second fill.
   if (!(await ctx.db.claimInvoice(row.invoiceId, quoteId))) {
-    throw new AppError(409, 'já tem um pagamento desta fatura em andamento');
+    throw new AppError(409, 'já tem um pagamento desta fatura em andamento', 'payment_in_progress');
   }
   try {
     const txHash = await fill(ctx, row);
     await ctx.db.setQuoteFill(quoteId, txHash);
-    await ctx.db.markInvoicePaid(row.invoiceId);
+    await ctx.db.markInvoicePaid(row.invoiceId, ctx.now());
     return { txHash, alreadyPaid: false };
   } catch (error) {
     await ctx.db.releaseInvoice(row.invoiceId, quoteId);
@@ -132,7 +132,7 @@ async function fill(ctx: Context, row: NonNullable<Awaited<ReturnType<Context['d
   const { rfq } = ctx.addresses;
   // A quote already used on-chain (a retry after a lost answer) is not sent again.
   if (await ctx.client.readContract({ address: rfq, abi: rastroRfqAbi, functionName: 'nonceUsed', args: [quote.nonce] })) {
-    throw new AppError(409, 'esta cotação já foi usada');
+    throw new AppError(409, 'esta cotação já foi usada', 'quote_used');
   }
   // Approve the token the RFQ actually pulls (pathUSD on Tempo), read from the contract itself.
   const usd = await ctx.client.readContract({ address: rfq, abi: rastroRfqAbi, functionName: 'usd' });
@@ -147,13 +147,13 @@ async function fill(ctx: Context, row: NonNullable<Awaited<ReturnType<Context['d
         { to: rfq, data: fillCall },
       ],
     });
-    if (receipt.status !== 'success') throw new AppError(502, `o pagamento reverteu: ${receipt.transactionHash}`);
+    if (receipt.status !== 'success') throw new AppError(502, `o pagamento reverteu: ${receipt.transactionHash}`, 'reverted');
     return receipt.transactionHash;
   }
   const approval = await payer.wallet.sendTransaction({ to: usd, data: approve });
   await ctx.client.waitForTransactionReceipt({ hash: approval });
   const txHash = await payer.wallet.sendTransaction({ to: rfq, data: fillCall });
   const receipt = await ctx.client.waitForTransactionReceipt({ hash: txHash });
-  if (receipt.status !== 'success') throw new AppError(502, `o pagamento reverteu: ${txHash}`);
+  if (receipt.status !== 'success') throw new AppError(502, `o pagamento reverteu: ${txHash}`, 'reverted');
   return txHash;
 }

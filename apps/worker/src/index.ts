@@ -1,8 +1,8 @@
-import { createContext, releaseOrchestrator, shortError, syncChain, tick } from '@rastro/core';
+import { autoWithdraw, createContext, releaseOrchestrator, shortError, syncChain, tick } from '@rastro/core';
 
-// Every 2 s: copy new chain events into Postgres, then move every open withdrawal as far
-// as it can go. If a second worker starts, the lease in Postgres keeps it from moving
-// anything until the first one stops.
+// Every 2 s: copy new chain events into Postgres, start the withdrawals Ana asked to be
+// automatic, then move every open withdrawal as far as it can go. If a second worker
+// starts, the lease in Postgres keeps it from moving anything until the first one stops.
 
 const PASS_MS = 2_000;
 const HEARTBEAT_MS = 60_000;
@@ -23,6 +23,7 @@ while (running) {
   const started = Date.now();
   try {
     const events = await syncChain(ctx);
+    await autoWithdraw(ctx);
     const steps = await tick(ctx);
     if (events || steps) console.log(`${stamp()} +${events} chain events, ${steps} withdrawal steps`);
   } catch (error) {

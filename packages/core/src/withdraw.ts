@@ -14,20 +14,20 @@ export async function requestWithdrawal(
 ): Promise<{ id: string; transferTx: Hash }> {
   const user = await ctx.db.user(input.userId);
   if (!user) throw notFound('usuária');
-  if (!user.pixKey) throw new AppError(400, 'cadastre uma chave Pix antes de sacar');
+  if (!user.pixKey) throw new AppError(400, 'cadastre uma chave Pix antes de sacar', 'no_pix_key');
 
   let amount: bigint;
   try {
     amount = brlToBase(input.amountBrl);
   } catch {
-    throw new AppError(400, 'valor inválido: use reais com até dois centavos, como 8274.42');
+    throw new AppError(400, 'valor inválido: use reais com até dois centavos, como 8274.42', 'invalid_amount');
   }
-  if (amount <= 0n) throw new AppError(400, 'o valor precisa ser maior que zero');
+  if (amount <= 0n) throw new AppError(400, 'o valor precisa ser maior que zero', 'invalid_amount');
 
   // Demo custody: the server signs for the wallet in ANA_PRIVATE_KEY and no other.
   const ana = ctx.signer('ana');
   if (!isAddressEqual(ana.account.address, user.wallet as Hex)) {
-    throw new AppError(403, 'esta demo só assina pela carteira de ANA_PRIVATE_KEY');
+    throw new AppError(403, 'esta demo só assina pela carteira de ANA_PRIVATE_KEY', 'wrong_wallet');
   }
 
   const balance = await ctx.client.readContract({
@@ -36,13 +36,23 @@ export async function requestWithdrawal(
     functionName: 'balanceOf',
     args: [ana.account.address],
   });
-  if (balance < amount) throw new AppError(409, `saldo insuficiente: R$ ${baseToBrl(balance - (balance % 10_000n))}`);
+  if (balance < amount) {
+    throw new AppError(409, `saldo insuficiente: R$ ${baseToBrl(balance - (balance % 10_000n))}`, 'insufficient_balance');
+  }
 
   const id = newId('saque');
-  await ctx.db.insertWithdrawal(
-    { id, userId: user.id, invoiceId: input.invoiceId ?? null, amountBrl: amount.toString() },
-    `R$ ${baseToBrl(amount)} para ${user.pixKeyMasked ?? 'a chave cadastrada'}`,
-  );
+  try {
+    await ctx.db.insertWithdrawal(
+      { id, userId: user.id, invoiceId: input.invoiceId ?? null, amountBrl: amount.toString() },
+      `R$ ${baseToBrl(amount)} para ${user.pixKeyMasked ?? 'a chave cadastrada'}`,
+    );
+  } catch (error) {
+    // withdrawals_one_per_invoice: a second click, or the automatic withdrawal got there first
+    if ((error as { code?: string }).code === '23505') {
+      throw new AppError(409, 'esta fatura já tem um saque em andamento ou concluído', 'already_withdrawn');
+    }
+    throw error;
+  }
 
   try {
     const transferTx = await signAndSend(
@@ -69,6 +79,6 @@ export async function requestWithdrawal(
       return { id, transferTx: saved.transferTx as Hash };
     }
     await ctx.db.advance(id, 'SOLICITADO', 'CANCELADO', { failure: shortError(error) }, 'o tBRL não saiu da carteira');
-    throw new AppError(502, `não deu para enviar o tBRL: ${shortError(error)}`);
+    throw new AppError(502, `não deu para enviar o tBRL: ${shortError(error)}`, 'transfer_failed');
   }
 }

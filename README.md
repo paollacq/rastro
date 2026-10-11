@@ -64,8 +64,28 @@ pnpm pix:webhook https://<app>/api/webhooks/pix   # prints PAYZU_WEBHOOK_SECRET 
 | `POST /api/withdraw` | `{ amountBrl, invoiceId? }` → Ana's tBRL to the treasury, memo = withdrawal id |
 | `POST /api/webhooks/pix` | PayZu deliveries: ownership challenge, HMAC check, stored once |
 | `GET /api/trace/:id` | `fatura-0047` or `saque-…` → the whole trail |
+| `POST /api/settings` | `{ autoWithdraw }` → Ana's payments go out by Pix on their own, from now on |
+| `POST /api/waitlist` | `{ email, relation? }` from the landing, once per address |
+| `GET /api/report.csv` | `?from=2026-10-01&to=2026-10-31` → every operation: origin, destination, rate, Pix ID, Tempo transactions |
+| `GET /api/reserves` | tBRL supply against the reais in the Pix account |
 
 A withdrawal goes SOLICITADO → TBRL_NA_TESOURARIA → PIX_ENVIADO → PIX_CONFIRMADO → QUEIMADO → CONCLUIDO, or FALHOU → DEVOLVIDO when the Pix is refused. Run one worker; a second one waits for the first one's lease.
+
+## Screens
+
+With `pnpm dev` and `pnpm worker` running:
+
+| Path | For | What it shows |
+| --- | --- | --- |
+| `/` | anyone | the sentence, a real trail from the testnet, the waitlist |
+| `/invoice/0047` | the payer, in English | the invoice, a PTAX quote locked for 30 s, the pay button |
+| `/ana` | Ana, in Portuguese (`?lang=en` for English) | tBRL balance, payments in, withdraw by Pix, automatic withdrawal |
+| `/trace/fatura-0047` | anyone with the link | the six steps, the Pix ID over the burn memo, the CONFERIDO stamp |
+| `/console` | the institution, in English | operations and the CSV, allowlist, blocked transfers, reserves |
+
+The trail page asks the API every second until nothing is left to happen. Ana's automatic withdrawal is saved in Postgres; the worker does the withdrawing. Why some things differ from the design tab: decision 0003.
+
+The landing's footer reads `apps/web/lib/team.ts`. Put your names, links and city there; it shows nothing until you do.
 
 ## Tests
 
@@ -80,7 +100,7 @@ TEST_DATABASE_URL=postgres://… pnpm --filter @rastro/db test
 E2E_RPC_URL=http://127.0.0.1:8545 E2E_DATABASE_URL=postgres://… pnpm --filter @rastro/core test
 ```
 
-The second one pays invoice 0047, withdraws it to a simulated Pix and checks the burn memo, on mock TIP-20s.
+The second one pays invoice 0047, withdraws it to a simulated Pix and checks the burn memo, on mock TIP-20s and a mock TIP-403 registry. It also covers the automatic withdrawal and what the screens read: wallet, ledger, whitelist and reserves.
 
 ## Layout
 
@@ -89,7 +109,7 @@ contracts/        RastroRFQ, TIP-20 / factory / TIP-403 interfaces, Foundry test
 packages/chain    viem client for Moderato, roles, quote signing, setup and fill-test scripts
 packages/pix      PayZu client, simulator, webhook signature, end-to-end ID formats
 packages/db       Postgres schema and queries
-packages/core     quotes, payments, withdrawals, watcher, webhook, trail
+packages/core     quotes, payments, withdrawals, watcher, webhook, trail, what each screen reads
 apps/web          Next.js: screens and the API routes
 apps/worker       the loop that runs the watcher and the withdrawal state machine
 docs/decisions    one page per decision, with date and author

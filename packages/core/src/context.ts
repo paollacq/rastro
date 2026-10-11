@@ -13,7 +13,8 @@ export type Wallet = ReturnType<typeof walletClient>;
 export interface Context {
   db: Queries;
   client: ChainClient;
-  addresses: { tbrl: Address; rfq: Address; pathUsd: Address; treasury: Address };
+  // policyId: the TIP-403 whitelist tBRL answers to; absent on a test chain without one.
+  addresses: { tbrl: Address; rfq: Address; pathUsd: Address; treasury: Address; policyId?: bigint };
   signer(role: Role): { account: LocalAccount; wallet: Wallet };
   // Where new withdrawals go (PIX_MODE), and the provider an older one was sent through.
   pix: PixProvider;
@@ -37,9 +38,9 @@ export function createContext(overrides: Partial<Context> = {}): Context {
   const addresses =
     overrides.addresses ??
     (() => {
-      const { tbrl, rfq } = deployed();
+      const { tbrl, rfq, policyId } = deployed();
       if (!tbrl || !rfq) throw new Error('No tBRL or RFQ address yet. Run pnpm chain:setup first.');
-      return { tbrl, rfq, pathUsd, treasury: account('treasury').address };
+      return { tbrl, rfq, pathUsd, treasury: account('treasury').address, policyId };
     })();
 
   return {

@@ -177,3 +177,25 @@ create table if not exists reserve_checks (
   ok boolean not null,
   at timestamptz not null default now()
 );
+
+-- Etapa 3: what the screens need.
+alter table users add column if not exists city text;
+-- When Ana turned on "sacar automaticamente"; null is off. Only payments that arrive
+-- after that moment go out on their own.
+alter table users add column if not exists auto_withdraw_since timestamptz;
+-- The lines the payer sees, in English: [{ "description", "hours", "rateUsd" }].
+alter table invoices add column if not exists items jsonb not null default '[]';
+alter table invoices add column if not exists paid_at timestamptz;
+
+-- One withdrawal in flight per invoice. A double click, or the button racing the
+-- automatic withdrawal, gets a conflict instead of a second Pix.
+create unique index if not exists withdrawals_one_per_invoice on withdrawals (invoice_id)
+  where invoice_id is not null and status not in ('CANCELADO', 'DEVOLVIDO');
+
+create table if not exists waitlist (
+  id bigserial primary key,
+  email text not null unique,
+  relation text check (relation in ('recebo', 'pago', 'os dois')),
+  lang text not null default 'pt',
+  created_at timestamptz not null default now()
+);
