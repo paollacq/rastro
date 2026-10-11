@@ -339,7 +339,13 @@ async function Reserves() {
         </Erro>
       ) : (
         <>
-          <ReserveGauge supply={r.supply.value} balance={r.balance.value} inFlight={r.inFlight} lang="en" />
+          <ReserveGauge
+            supply={r.supply.value}
+            balance={r.balance.value}
+            inFlight={r.inFlight}
+            inFlightCount={r.inFlightCount}
+            lang="en"
+          />
           <p style={{ marginTop: 20, fontWeight: 600, color: r.shortfall === '0.00' ? 'var(--conferido)' : 'var(--recusa)' }}>
             {r.shortfall === '0.00'
               ? 'Match. Every tBRL in circulation has a real behind it.'

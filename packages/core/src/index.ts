@@ -1,5 +1,6 @@
 export * from './auto-withdraw.ts';
 export * from './context.ts';
+export * from './demo.ts';
 export * from './errors.ts';
 export * from './kyc.ts';
 export * from './money.ts';

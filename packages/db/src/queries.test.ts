@@ -5,6 +5,7 @@ import { queries, type Queries } from './queries.ts';
 import { assertThrowawayDatabase } from './testing.ts';
 
 // Runs against a throwaway database: TEST_DATABASE_URL=postgres://... pnpm --filter @rastro/db test
+// The first thing it does is drop the schema, so the URL has to be a disposable one.
 const url = process.env.TEST_DATABASE_URL;
 
 describe.skipIf(!url)('queries', () => {
@@ -12,8 +13,7 @@ describe.skipIf(!url)('queries', () => {
   let q: Queries;
 
   beforeAll(async () => {
-    assertThrowawayDatabase(url as string, 'TEST_DATABASE_URL');
-    sql = connect(url);
+    sql = connect(assertThrowawayDatabase(url, 'o teste do @rastro/db'));
     await sql.unsafe('drop schema if exists public cascade; create schema public;');
     await migrate(sql);
     await migrate(sql); // twice on purpose

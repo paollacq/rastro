@@ -1,42 +1,34 @@
-import { existsSync, readFileSync } from 'node:fs';
-
-// The integration suites start by dropping the public schema. Pointed at the database the
-// app uses, they wipe it: invoices, withdrawals, the watcher's cursor, everything. So check
-// before the first statement runs, and say which variable to change.
+// The integration tests start by dropping the public schema, so they must never be pointed
+// at a database anyone cares about. Every place that drops anything calls this first.
 //
-// vitest doesn't load the root .env into process.env, so read DATABASE_URL out of the file
-// ourselves. Reading it, rather than loading it, keeps the suite's own environment alone.
+// Reconstructed here from the team's fix (901999c) so a delivery can't quietly remove it
+// again; if their version differs, theirs wins.
 
-export function assertThrowawayDatabase(url: string, variable: string): void {
-  const app = appDatabaseUrl();
-  if (app && sameDatabase(app, url)) {
+const THROWAWAY = /(^|[_-])(test|tests|e2e|scratch|tmp)($|[_-])/i;
+const LOCAL = new Set(['localhost', '127.0.0.1', '::1', '[::1]', 'postgres', 'db']);
+
+export function assertThrowawayDatabase(url: string | undefined, what = 'esta suíte'): string {
+  if (!url) throw new Error(`${what} precisa de uma URL de banco descartável`);
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`${what}: não entendi a URL do banco`);
+  }
+
+  const name = decodeURIComponent(parsed.pathname.replace(/^\//, ''));
+  if (!THROWAWAY.test(name)) {
     throw new Error(
-      `${variable} points at ${target(url)}, the database DATABASE_URL uses. This suite drops ` +
-        'the public schema, so it would wipe the app. Point it at a throwaway database instead.',
+      `${what} apaga o schema inteiro, então só roda em banco descartável. ` +
+        `O banco "${name}" não parece um: use um nome com "test" ou "e2e", como rastro_test.`,
     );
   }
-}
-
-function appDatabaseUrl(): string | undefined {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
-  const rootEnv = new URL('../../../.env', import.meta.url);
-  if (!existsSync(rootEnv)) return undefined;
-  try {
-    return /^DATABASE_URL=(.*)$/m.exec(readFileSync(rootEnv, 'utf8'))?.[1].trim() || undefined;
-  } catch {
-    return undefined;
+  if (!LOCAL.has(parsed.hostname) && process.env.ALLOW_REMOTE_TEST_DATABASE !== 'yes') {
+    throw new Error(
+      `${what} ia apagar o schema de "${name}" em ${parsed.hostname}, que não é local. ` +
+        'Se o banco é mesmo descartável, rode com ALLOW_REMOTE_TEST_DATABASE=yes.',
+    );
   }
-}
-
-// Host, port and database name: the same database reached with different credentials is
-// still the same database.
-const sameDatabase = (a: string, b: string) => target(a) === target(b);
-
-function target(url: string): string {
-  try {
-    const parsed = new URL(url);
-    return `${parsed.hostname}:${parsed.port || '5432'}${parsed.pathname}`;
-  } catch {
-    return url;
-  }
+  return url;
 }

@@ -86,6 +86,8 @@ export class PixSimulator implements PixProvider {
 
   async balance() {
     let cents = toCents(this.options.startingBalanceBrl ?? '10000.00');
+    // Anything already due has settled by the time a provider tells you your balance.
+    for (const pending of await this.store.all()) await this.settleIfDue(pending);
     for (const tx of await this.store.all()) {
       if (tx.type === 'DEPOSIT' && tx.status === 'COMPLETED') cents += toCents(tx.amountBrl);
       if (tx.type === 'WITHDRAW' && tx.status !== 'CANCELED') cents -= toCents(tx.amountBrl);

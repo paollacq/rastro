@@ -9,11 +9,13 @@ export function ReserveGauge({
   supply,
   balance,
   inFlight = '0.00',
+  inFlightCount = 0,
   lang,
 }: {
   supply: string;
   balance: string;
   inFlight?: string;
+  inFlightCount?: number;
   lang: Lang;
 }) {
   const s = Number(supply);
@@ -34,6 +36,7 @@ export function ReserveGauge({
         {Number(inFlight) > 0 && (
           <span className="mudo" style={{ display: 'block', fontSize: 'var(--t13)' }}>
             {lang === 'pt' ? 'mais em trânsito' : 'plus on its way out'} {inFlight}
+            {inFlightCount > 0 && (lang === 'pt' ? ` (${inFlightCount} saque${inFlightCount > 1 ? 's' : ''})` : ` (${inFlightCount})`)}
           </span>
         )}
       </span>

@@ -14,7 +14,10 @@
     "test": "vitest run",
     "reconcile": "tsx --env-file-if-exists=../../.env src/scripts/reconcile.ts",
     "reserves": "tsx --env-file-if-exists=../../.env src/scripts/reserves.ts",
-    "lastro-test": "tsx --env-file-if-exists=../../.env src/scripts/lastro-test.ts"
+    "lastro-test": "tsx --env-file-if-exists=../../.env src/scripts/lastro-test.ts",
+    "demo-reset": "tsx --env-file-if-exists=../../.env src/scripts/demo-reset.ts",
+    "credencial": "tsx --env-file-if-exists=../../.env src/scripts/credencial.ts",
+    "ensaio": "tsx --env-file-if-exists=../../.env src/scripts/ensaio.ts"
   },
   "dependencies": {
     "@rastro/chain": "workspace:*",

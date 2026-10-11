@@ -6,6 +6,7 @@ import { Abis } from 'viem/tempo';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { autoWithdraw } from './auto-withdraw.ts';
 import { createContext, pixFromEnv, type Context } from './context.ts';
+import { resetDemo } from './demo.ts';
 import { registerClient } from './kyc.ts';
 import { tick } from './orchestrator.ts';
 import { testTransfer } from './policy.ts';
@@ -21,6 +22,8 @@ import { requestWithdrawal } from './withdraw.ts';
 // for the TIP-20 precompiles and the simulator standing in for Pix:
 //   anvil --chain-id 42431 &
 //   E2E_RPC_URL=http://127.0.0.1:8545 E2E_DATABASE_URL=postgres://... pnpm --filter @rastro/core test
+// Both the chain and the database are wiped at the start, so E2E_DATABASE_URL has to be a
+// throwaway one (assertThrowawayDatabase refuses anything else).
 // What only Tempo has (precompiles, policies, the batched transaction) is covered by
 // chain:fill-test on Moderato. The TIP-403 registry gets a mock at its own address, so the
 // whitelist the screens show comes from real events.
@@ -85,8 +88,7 @@ describe.skipIf(!rpc || !dbUrl)('invoice 0047, paid and withdrawn to Pix, on a l
     await send(usd, 'mint', [account('payer').address, 10_000_000_000n]);
     await send(tbrl, 'mint', [rfq, 10_000_000_000n]);
 
-    assertThrowawayDatabase(dbUrl as string, 'E2E_DATABASE_URL');
-    sql = connect(dbUrl);
+    sql = connect(assertThrowawayDatabase(dbUrl, 'o teste de ponta a ponta'));
     await sql.unsafe('drop schema if exists public cascade; create schema public;');
     await migrate(sql);
     const db = queries(sql);
@@ -374,5 +376,32 @@ describe.skipIf(!rpc || !dbUrl)('invoice 0047, paid and withdrawn to Pix, on a l
     expect(back).toMatchObject({ ok: true, burnedBrl: '1000.00', shortfallBrl: '0.00' });
     expect(await isPaused(ctx)).toBe(false);
     expect((await monitorReserves(ctx, true))?.ok).toBe(true);
+  });
+
+  // Last, because it clears what every test above it built.
+  it('puts the demo back to its first frame, with the Pix account topped up', async () => {
+    const spent = await ctx.pix.balance();
+    expect(Number(spent.availableBrl)).toBeLessThan(10_000);
+
+    const report = await resetDemo(ctx, { inventoryBrl: '10000' });
+    expect(report.balanceBrl).toBe('10000.00');
+    expect(report.toppedUpBrl).not.toBe('0.00');
+
+    // What a client holds is theirs; the stock is whatever is left of the backing.
+    const stranded = Number(report.strandedBrl);
+    expect(stranded).toBeGreaterThan(0);
+    expect(Number(report.inventoryBrl) + stranded).toBe(Number(report.supplyAfter));
+    expect(Number(report.supplyAfter)).toBeLessThanOrEqual(Number(report.balanceBrl));
+
+    const invoice = await ctx.db.invoice('fatura-0047');
+    expect(invoice).toMatchObject({ status: 'aberta', paidAt: null, amountUsd: '1540.00' });
+    expect(await ctx.db.withdrawalsOf('ana')).toEqual([]);
+    expect(await ctx.db.quotesForInvoice('fatura-0047')).toEqual([]);
+    expect((await ctx.db.user('ana'))?.autoWithdrawSince).toBeNull();
+    expect((await monitorReserves(ctx, true))?.ok).toBe(true);
+
+    // And it is cheap to run again when nothing moved since.
+    const again = await resetDemo(ctx, { inventoryBrl: '10000' });
+    expect(again.txs).toEqual([]);
   });
 });

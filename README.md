@@ -42,20 +42,26 @@ Postgres from Supabase or Neon in `DATABASE_URL`. Then:
 
 ```bash
 pnpm db:migrate      # tables; safe to run on every deploy
-pnpm db:seed         # Ana, Bramble & Pike and invoice #0047
+pnpm demo:reset      # the demo at its first frame: stock, Ana, Bramble & Pike, invoice #0047
 pnpm fx:ptax         # the PTAX the quotes will use, straight from the Central Bank
 pnpm dev             # app and API on localhost:3000
-pnpm worker          # in another terminal: chain watcher and withdrawal state machine
+pnpm worker          # in another terminal: chain watcher, withdrawals and the reserve monitor
 pnpm saque:test      # a withdrawal end to end, checked against the burn memo
+pnpm ensaio --runs 5 # the whole demo five times through the API, timed
 ```
+
+`pnpm demo:reset` is the one to run before a recording: it tops the Pix account back up, squares the tBRL in circulation with it, clears what earlier runs wrote and reopens invoice #0047. It is also what `pnpm ensaio` runs between its rounds. Deploying is in [DEPLOY.md](DEPLOY.md).
 
 `PIX_MODE=sandbox` sends Pix through PayZu; `PIX_MODE=simulator` uses our own simulator, with the same rules and IDs in the official format from a made-up institution (99999999). When the 24 h credential stops answering, the worker switches to the simulator by itself and every screen says "Pix simulado"; `/admin` switches it back once a new credential is in `.env`.
 
 The webhook needs a public HTTPS address (the deploy, or a tunnel to localhost):
 
 ```bash
-pnpm pix:webhook https://<app>/api/webhooks/pix   # prints PAYZU_WEBHOOK_SECRET once
+pnpm pix:credencial                                 # is the credential alive, and does it back the tBRL
+pnpm pix:credencial https://<app>/api/webhooks/pix  # also registers the webhook, printing its secret once
 ```
+
+The credential lasts 24 hours. Run that pair plus `pnpm demo:reset` after generating a new one; until then the worker falls back to the simulator by itself and the screens say "Pix simulado".
 
 | Route | What it does |
 | --- | --- |
@@ -69,6 +75,7 @@ pnpm pix:webhook https://<app>/api/webhooks/pix   # prints PAYZU_WEBHOOK_SECRET 
 | `POST /api/waitlist` | `{ email, relation? }` from the landing, once per address |
 | `GET /api/report.csv` | `?from=2026-10-01&to=2026-10-31` → every operation: origin, destination, rate, Pix ID, Tempo transactions |
 | `GET /api/reserves` | tBRL supply against the reais behind it, and whether the token is paused |
+| `GET /api/health` | database, Tempo node, Pix provider and the token's state, one line each |
 | `POST /api/admin/*` | the team's levers: break and restore the backing, test the policy, switch the Pix mode. Needs `ADMIN_TOKEN` |
 
 A withdrawal goes SOLICITADO → TBRL_NA_TESOURARIA → PIX_ENVIADO → PIX_CONFIRMADO → QUEIMADO → CONCLUIDO, or FALHOU → DEVOLVIDO when the Pix is refused. Run one worker; a second one waits for the first one's lease.
@@ -109,16 +116,12 @@ The cadastro is what puts a wallet on TIP-403 policy. Before it, the protocol re
 pnpm test    # Foundry and unit tests
 ```
 
-With a local Postgres and `anvil --chain-id 42431` running, two integration suites also run:
+With a local Postgres and `anvil --chain-id 42431` running, two integration suites also run. Both wipe what they point at, the database schema and the chain, so they only accept a throwaway database (a name with `test` or `e2e`, on localhost) and they reset anvil before deploying their mocks. Never point them at the deployed database.
 
 ```bash
 TEST_DATABASE_URL=postgres://… pnpm --filter @rastro/db test
 E2E_RPC_URL=http://127.0.0.1:8545 E2E_DATABASE_URL=postgres://… pnpm --filter @rastro/core test
 ```
-
-Both suites begin by dropping the `public` schema, so those two variables must point at a
-throwaway database, never the one in `DATABASE_URL`. They refuse to run if it is the same
-host, port and database name.
 
 The second one pays invoice 0047, withdraws it to a simulated Pix and checks the burn memo, on mock TIP-20s and a mock TIP-403 registry. It also covers the automatic withdrawal and what the screens read: wallet, ledger, whitelist and reserves.
 

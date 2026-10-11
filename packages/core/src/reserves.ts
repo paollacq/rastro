@@ -37,14 +37,15 @@ export async function readReserves(ctx: Context) {
   const [supply, balance, inFlight] = await Promise.all([
     ctx.client.readContract({ address: ctx.addresses.tbrl, abi: Abis.tip20, functionName: 'totalSupply' }),
     (await activePix(ctx)).balance(),
-    ctx.db.inFlightBrl(),
+    ctx.db.inFlight(),
   ]);
-  const backed = toCents(balance.availableBrl) * BASE_PER_CENT + inFlight;
+  const backed = toCents(balance.availableBrl) * BASE_PER_CENT + inFlight.brl;
   const missing = supply > backed ? supply - backed : 0n;
   return {
     supply,
     backed,
-    inFlight,
+    inFlight: inFlight.brl,
+    inFlightCount: inFlight.count,
     balanceBrl: balance.availableBrl,
     ok: missing === 0n,
     // Rounded up: a fraction of a centavo without backing still breaks the invariant.

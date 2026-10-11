@@ -21,12 +21,15 @@
     "pix:smoke": "pnpm --filter @rastro/pix run smoke",
     "db:migrate": "pnpm --filter @rastro/db run migrate",
     "db:seed": "pnpm --filter @rastro/core run seed",
+    "demo:reset": "pnpm --filter @rastro/core run demo-reset",
     "fx:ptax": "pnpm --filter @rastro/core run ptax",
     "pix:webhook": "pnpm --filter @rastro/core run pix-webhook",
+    "pix:credencial": "pnpm --filter @rastro/core run credencial",
     "saque:test": "pnpm --filter @rastro/core run saque-test",
     "lastro": "pnpm --filter @rastro/core run reserves",
     "lastro:test": "pnpm --filter @rastro/core run lastro-test",
-    "relatorio:conferir": "pnpm --filter @rastro/core run reconcile"
+    "relatorio:conferir": "pnpm --filter @rastro/core run reconcile",
+    "ensaio": "pnpm --filter @rastro/core run ensaio"
   },
   "devDependencies": {
     "@types/node": "^22",

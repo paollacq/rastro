@@ -349,6 +349,7 @@ export interface ReservesView {
   provider: 'payzu-sandbox' | 'simulator';
   // Already paid out by Pix, with the tBRL still waiting to be burned.
   inFlight: string;
+  inFlightCount: number;
   // Reais of tBRL with no reais behind them; "0.00" when the reserve covers the supply.
   shortfall: string | null;
   paused: Read<boolean>;
@@ -367,13 +368,13 @@ export async function reservesView(ctx: Context): Promise<ReservesView> {
     attempt(() => ctx.client.readContract({ address: ctx.addresses.tbrl, abi: Abis.tip20, functionName: 'paused' })),
     ctx.db.reserveChecks(),
     ctx.db.lastPauseChange(),
-    ctx.db.inFlightBrl(),
+    ctx.db.inFlight(),
   ]);
 
   let shortfall: string | null = null;
   if (supply.ok && balance.ok) {
     // Plus whatever Pix has already paid out and the burn has not caught up with yet.
-    const backed = toCents(balance.value.availableBrl) * BASE_PER_CENT + inFlight;
+    const backed = toCents(balance.value.availableBrl) * BASE_PER_CENT + inFlight.brl;
     // Rounded up: a fraction of a centavo without backing still breaks the invariant.
     const missing = supply.value > backed ? supply.value - backed : 0n;
     shortfall = baseToBrl(missing + ((BASE_PER_CENT - (missing % BASE_PER_CENT)) % BASE_PER_CENT));
@@ -383,7 +384,8 @@ export async function reservesView(ctx: Context): Promise<ReservesView> {
     supply: supply.ok ? { ok: true, value: exactReais(supply.value) } : supply,
     balance: balance.ok ? { ok: true, value: balance.value.availableBrl } : balance,
     provider: pix.name,
-    inFlight: baseToBrl(floorToCents(inFlight)),
+    inFlight: baseToBrl(floorToCents(inFlight.brl)),
+    inFlightCount: inFlight.count,
     shortfall,
     paused,
     pausedAt: lastPause?.paused ? iso(lastPause.at) : null,

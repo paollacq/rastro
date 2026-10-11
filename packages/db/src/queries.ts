@@ -511,14 +511,16 @@ export function queries(sql: Sql) {
       return sql<ReserveCheck[]>`select * from reserve_checks order by at desc limit ${limit}`;
     },
 
-    // Reais already on their way out by Pix whose tBRL has not been burned yet. Between
-    // those two moments the supply is legitimately above the balance, and the reserve
-    // check has to know it.
-    async inFlightBrl() {
-      const [row] = await sql<{ total: string }[]>`
-        select coalesce(sum(amount_brl), 0)::text as total from withdrawals
-        where status in ('PIX_ENVIADO', 'PIX_CONFIRMADO', 'QUEIMADO')`;
-      return BigInt(row?.total ?? '0');
+    // Reais on their way out by Pix whose tBRL has not been burned yet. Between those two
+    // moments the supply is legitimately above the balance, and the reserve check has to
+    // know it. Only while the withdrawal is still moving: after `staleMinutes` the slack
+    // closes, so a stuck withdrawal stops hiding a real shortfall.
+    async inFlight(staleMinutes = 5) {
+      const [row] = await sql<{ total: string; count: string }[]>`
+        select coalesce(sum(amount_brl), 0)::text as total, count(*)::text as count from withdrawals
+        where status in ('PIX_ENVIADO', 'PIX_CONFIRMADO', 'QUEIMADO')
+          and updated_at > now() - make_interval(mins => ${staleMinutes})`;
+      return { brl: BigInt(row?.total ?? '0'), count: Number(row?.count ?? 0) };
     },
 
     async insertReserveCheck(check: { supply: string; balanceBrl: string; ok: boolean }) {
@@ -604,6 +606,32 @@ export function queries(sql: Sql) {
 
     async releaseLease(name: string, holder: string) {
       await sql`delete from leases where name = ${name} and holder = ${holder}`;
+    },
+
+    // Everything the demo wrote, cleared in one go for `pnpm demo:reset`. What stays: the
+    // people (Ana, the payer and anyone who did the cadastro), the whitelist history, and
+    // chain_events with the watcher's cursors, so the console keeps the dates it read from
+    // the chain and the watcher doesn't have to read it all again.
+    async clearDemo() {
+      return sql.begin(async (tx) => {
+        const counts: Record<string, number> = {};
+        for (const table of [
+          'withdrawal_steps',
+          'outbox',
+          'withdrawals',
+          'pix_events',
+          'sim_transactions',
+          'quotes',
+          'invoices',
+          'blocked_attempts',
+          'reserve_checks',
+        ]) {
+          const gone = await tx.unsafe(`delete from ${table} returning 1`);
+          counts[table] = gone.length;
+        }
+        await tx`update users set auto_withdraw_since = null`;
+        return counts;
+      });
     },
 
     async state(key: string) {

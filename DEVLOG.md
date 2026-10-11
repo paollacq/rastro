@@ -2,6 +2,14 @@
 
 A few lines a day, newest on top: what broke, what we decided and why.
 
+## 2026-10-11, tarde
+
+- Etapa 5: `pnpm demo:reset`, `pnpm ensaio`, `pnpm pix:credencial`, `/api/health` e o DEPLOY.md.
+- O ensaio achou o que faltava: a segunda rodada quebrava porque cada saque tira R$ 8.293 da conta Pix e nada devolve. O reset agora recarrega a conta com uma cobrança no sandbox (pago pelo pagador simulado) e só então acerta o estoque de tBRL. Cinco rodadas seguidas, mediana de 11,9 s no simulador.
+- O simulador liquidava uma cobrança só quando alguém perguntava por um saque, então o saldo nunca subia. Agora `balance()` liquida o que já venceu, como um provedor de verdade faz.
+- `inFlightBrl` virou `inFlight` com janela de 5 minutos: passado isso, a folga fecha e um saque travado deixa de esconder um déficit.
+- Guard de banco descartável reaplicado na nossa árvore (`assertThrowawayDatabase`), para a próxima entrega não derrubar de novo.
+
 ## 2026-10-11
 
 - Etapa 4: cadastro that puts a wallet on the TIP-403 policy, a transfer the protocol refuses, the reserve monitor with its automatic pause, and the admin screen for the technical demo.
