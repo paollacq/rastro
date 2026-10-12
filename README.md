@@ -96,7 +96,6 @@ With `pnpm dev` and `pnpm worker` running:
 
 The trail page asks the API every second until nothing is left to happen. Ana's automatic withdrawal is saved in Postgres; the worker does the withdrawing. Why some things differ from the design tab: decision 0003.
 
-The landing's footer reads `apps/web/lib/team.ts`. Put your names, links and city there; it shows nothing until you do.
 
 ## Compliance and backing
 

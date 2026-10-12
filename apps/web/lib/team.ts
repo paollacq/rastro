@@ -3,7 +3,7 @@
 export const team: { name: string; role: string; link?: string }[] = [
   { name: 'Paolla Cardoso Queiroz', role: 'Poli-USP' },
   { name: 'Bernardo Fischer Rigodanzo', role: 'Unicamp' },
-  { name: 'Tiago Marinho Lima', role: 'Poli-USP' },
+  { name: 'Yasmin Franco dos Anjos', role: 'Unicamp' },
 ];
-export const city = 'São Paulo';
-export const repository = '';
+export const city = 'São Paulo and Campinas, Brasil';
+export const repository = 'https://github.com/paollacq/rastro';

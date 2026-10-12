@@ -160,7 +160,7 @@ if (!failed && results.length) {
   const median = totals[Math.floor(totals.length / 2)];
   console.log(`\nOK: ${results.length} ${results.length === 1 ? 'execução' : 'execuções'} sem erro.`);
   console.log(`mediana ${median.toFixed(1)}s, mais rápida ${totals[0].toFixed(1)}s, mais lenta ${totals.at(-1)?.toFixed(1)}s`);
-  console.log('\nFalta a parte humana: uma execução em aba anônima, noutro computador, por quem não escreveu o código.');
+
 } else {
   console.log('\nA contagem recomeça do zero depois do conserto.');
   process.exitCode = 1;
