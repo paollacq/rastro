@@ -1,7 +1,7 @@
 # 0004: Cadastro, the policy and the reserve invariant
 
 Date: 2026-10-11
-Author:
+Author: Paolla Cardoso Queiroz, Bernardo Fischer Rigodanzo, Yasmin Franco dos Anjos
 
 ## Context
 

@@ -1,7 +1,7 @@
 # 0001: On-chain setup with viem, not forge script
 
 Date: 2026-10-10
-Author:
+Author: Paolla Cardoso Queiroz, Bernardo Fischer Rigodanzo, Yasmin Franco dos Anjos
 
 ## Context
 

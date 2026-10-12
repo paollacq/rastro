@@ -1,7 +1,7 @@
 # 0005: Repeating the demo, and the Pix account that runs out
 
 Date: 2026-10-11
-Author:
+Author: Paolla Cardoso Queiroz, Bernardo Fischer Rigodanzo, Yasmin Franco dos Anjos
 
 ## Context
 

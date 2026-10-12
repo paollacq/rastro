@@ -1,7 +1,7 @@
 # 0003: Screens, and where they differ from the design tab
 
 Date: 2026-10-10
-Author:
+Author: Paolla Cardoso Queiroz, Bernardo Fischer Rigodanzo, Yasmin Franco dos Anjos
 
 ## Context
 

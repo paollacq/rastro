@@ -1,7 +1,7 @@
 # 0002: Backend choices that differ from the spec
 
 Date: 2026-10-10
-Author:
+Author: Paolla Cardoso Queiroz, Bernardo Fischer Rigodanzo, Yasmin Franco dos Anjos
 
 ## Context
 
