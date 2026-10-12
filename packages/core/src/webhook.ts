@@ -15,18 +15,18 @@ export async function handlePixWebhook(ctx: Context, req: WebhookRequest): Promi
   if (challenge) return { status: 200, body: { challenge } };
 
   if (!verifyCallback(req.header('x-callback-signature'), req.rawBody, ctx.webhookSecret, ctx.now().getTime())) {
-    return { status: 401, body: { error: 'assinatura inválida' } };
+    return { status: 401, body: { error: 'invalid signature' } };
   }
 
   let body: Record<string, unknown>;
   try {
     body = JSON.parse(req.rawBody);
   } catch {
-    return { status: 400, body: { error: 'corpo não é JSON' } };
+    return { status: 400, body: { error: 'body is not JSON' } };
   }
   // The transaction itself, whether it comes bare or wrapped.
   const tx = (body.data ?? body.transaction ?? body) as Record<string, unknown>;
-  if (!tx.id) return { status: 400, body: { error: 'sem id de transação' } };
+  if (!tx.id) return { status: 400, body: { error: 'missing transaction id' } };
 
   const status = typeof tx.status === 'string' ? tx.status : null;
   const fresh = await ctx.db.insertPixEvent({

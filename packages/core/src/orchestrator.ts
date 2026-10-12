@@ -73,12 +73,12 @@ async function advanceOnce(ctx: Context, w: Withdrawal): Promise<Withdrawal | nu
         const state = await settle(ctx, w.transferTx as Hash);
         if (state === 'success') return ctx.db.advance(w.id, 'SOLICITADO', 'TBRL_NA_TESOURARIA', {}, 'tBRL na tesouraria');
         if (state === 'reverted' || state === 'dead') {
-          return ctx.db.advance(w.id, 'SOLICITADO', 'CANCELADO', { failure: `transferência ${state === 'dead' ? 'descartada' : 'revertida'}` }, 'o tBRL não saiu da carteira');
+          return ctx.db.advance(w.id, 'SOLICITADO', 'CANCELADO', { failure: `transfer ${state === 'dead' ? 'dropped' : 'reverted'}` }, "the tBRL didn't leave the wallet");
         }
         return null;
       }
       if (ctx.now().getTime() - w.createdAt.getTime() > ORPHAN_MS) {
-        return ctx.db.advance(w.id, 'SOLICITADO', 'CANCELADO', { failure: 'transferência não assinada' }, 'o pedido não chegou a enviar o tBRL');
+        return ctx.db.advance(w.id, 'SOLICITADO', 'CANCELADO', { failure: 'transfer not signed' }, "the request didn't get as far as sending the tBRL");
       }
       return null;
     }
@@ -148,11 +148,11 @@ async function advanceOnce(ctx: Context, w: Withdrawal): Promise<Withdrawal | nu
       });
       if (state !== 'success') return null;
       const burned = await ctx.db.advance(w.id, 'PIX_CONFIRMADO', 'QUEIMADO', {}, 'tBRL queimado com o ID do Pix no memo');
-      return burned && ctx.db.advance(w.id, 'QUEIMADO', 'CONCLUIDO', {}, 'concluído');
+      return burned && ctx.db.advance(w.id, 'QUEIMADO', 'CONCLUIDO', {}, 'done');
     }
 
     case 'QUEIMADO':
-      return ctx.db.advance(w.id, 'QUEIMADO', 'CONCLUIDO', {}, 'concluído');
+      return ctx.db.advance(w.id, 'QUEIMADO', 'CONCLUIDO', {}, 'done');
 
     case 'FALHOU': {
       const memoText = refundMemoText(w.id);

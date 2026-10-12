@@ -7,27 +7,27 @@
 const THROWAWAY = /(^|[_-])(test|tests|e2e|scratch|tmp)($|[_-])/i;
 const LOCAL = new Set(['localhost', '127.0.0.1', '::1', '[::1]', 'postgres', 'db']);
 
-export function assertThrowawayDatabase(url: string | undefined, what = 'esta suíte'): string {
-  if (!url) throw new Error(`${what} precisa de uma URL de banco descartável`);
+export function assertThrowawayDatabase(url: string | undefined, what = 'this suite'): string {
+  if (!url) throw new Error(`${what} needs a throwaway database URL`);
 
   let parsed: URL;
   try {
     parsed = new URL(url);
   } catch {
-    throw new Error(`${what}: não entendi a URL do banco`);
+    throw new Error(`${what}: couldn't parse the database URL`);
   }
 
   const name = decodeURIComponent(parsed.pathname.replace(/^\//, ''));
   if (!THROWAWAY.test(name)) {
     throw new Error(
-      `${what} apaga o schema inteiro, então só roda em banco descartável. ` +
-        `O banco "${name}" não parece um: use um nome com "test" ou "e2e", como rastro_test.`,
+      `${what} drops the whole schema, so it only runs on a throwaway database. ` +
+        `The database "${name}" doesn't look like one: use a name with "test" or "e2e", like rastro_test.`,
     );
   }
   if (!LOCAL.has(parsed.hostname) && process.env.ALLOW_REMOTE_TEST_DATABASE !== 'yes') {
     throw new Error(
-      `${what} ia apagar o schema de "${name}" em ${parsed.hostname}, que não é local. ` +
-        'Se o banco é mesmo descartável, rode com ALLOW_REMOTE_TEST_DATABASE=yes.',
+      `${what} would drop the schema of "${name}" at ${parsed.hostname}, which is not local. ` +
+        'If the database really is throwaway, run with ALLOW_REMOTE_TEST_DATABASE=yes.',
     );
   }
   return url;

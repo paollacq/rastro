@@ -13,21 +13,21 @@ export async function requestWithdrawal(
   input: { userId: string; amountBrl: string; invoiceId?: string | null },
 ): Promise<{ id: string; transferTx: Hash }> {
   const user = await ctx.db.user(input.userId);
-  if (!user) throw notFound('usuária');
+  if (!user) throw notFound('user');
   if (!user.pixKey) throw new AppError(400, 'cadastre uma chave Pix antes de sacar', 'no_pix_key');
 
   let amount: bigint;
   try {
     amount = brlToBase(input.amountBrl);
   } catch {
-    throw new AppError(400, 'valor inválido: use reais com até dois centavos, como 8274.42', 'invalid_amount');
+    throw new AppError(400, 'invalid amount: use reais with up to two cents, like 8274.42', 'invalid_amount');
   }
   if (amount <= 0n) throw new AppError(400, 'o valor precisa ser maior que zero', 'invalid_amount');
 
   // Demo custody: the server signs for the wallet in ANA_PRIVATE_KEY and no other.
   const ana = ctx.signer('ana');
   if (!isAddressEqual(ana.account.address, user.wallet as Hex)) {
-    throw new AppError(403, 'esta demo só assina pela carteira de ANA_PRIVATE_KEY', 'wrong_wallet');
+    throw new AppError(403, "this demo only signs for the ANA_PRIVATE_KEY wallet", 'wrong_wallet');
   }
 
   const balance = await ctx.client.readContract({
@@ -49,7 +49,7 @@ export async function requestWithdrawal(
   } catch (error) {
     // withdrawals_one_per_invoice: a second click, or the automatic withdrawal got there first
     if ((error as { code?: string }).code === '23505') {
-      throw new AppError(409, 'esta fatura já tem um saque em andamento ou concluído', 'already_withdrawn');
+      throw new AppError(409, 'this invoice already has a withdrawal going or done', 'already_withdrawn');
     }
     throw error;
   }
@@ -78,7 +78,7 @@ export async function requestWithdrawal(
       ctx.log(`${id}: broadcast failed (${shortError(error)}); the worker will retry it`);
       return { id, transferTx: saved.transferTx as Hash };
     }
-    await ctx.db.advance(id, 'SOLICITADO', 'CANCELADO', { failure: shortError(error) }, 'o tBRL não saiu da carteira');
-    throw new AppError(502, `não deu para enviar o tBRL: ${shortError(error)}`, 'transfer_failed');
+    await ctx.db.advance(id, 'SOLICITADO', 'CANCELADO', { failure: shortError(error) }, "the tBRL didn't leave the wallet");
+    throw new AppError(502, `couldn't send the tBRL: ${shortError(error)}`, 'transfer_failed');
   }
 }

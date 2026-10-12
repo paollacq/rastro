@@ -31,11 +31,11 @@ const FIELD: Record<string, string> = {
 };
 
 const TYPES: Record<string, string> = {
-  email: 'e-mail',
+  email: 'email',
   cpf: 'CPF',
   cnpj: 'CNPJ',
-  phone: 'telefone',
-  evp: 'chave aleatória',
+  phone: 'phone',
+  evp: 'random key',
 };
 
 export function CadastroForm() {
@@ -68,22 +68,22 @@ export function CadastroForm() {
       });
       const body = await res.json();
       if (!res.ok) {
-        setState({ kind: 'erro', message: body.error ?? 'o cadastro não foi aceito', code: body.code });
+        setState({ kind: 'erro', message: body.error ?? 'the sign-up was not accepted', code: body.code });
         return;
       }
       setState({ kind: 'feito', result: body as Done, at: new Date().toISOString() });
     } catch (error) {
-      setState({ kind: 'erro', message: `não deu para falar com o servidor: ${String(error)}` });
+      setState({ kind: 'erro', message: `couldn't reach the server: ${String(error)}` });
     }
   }
 
   if (state.kind === 'feito') {
     const { result } = state;
     return (
-      <Comprovante esquerda={<span className="mono">{result.id}</span>} direita={<span className="mono" suppressHydrationWarning>{dateTime(state.at, 'pt')}</span>}>
+      <Comprovante esquerda={<span className="mono">{result.id}</span>} direita={<span className="mono" suppressHydrationWarning>{dateTime(state.at, 'en')}</span>}>
         <h2>{result.name}</h2>
         <p className="selo selo--sim" style={{ marginTop: 8 }}>
-          Carteira identificada
+          Identified wallet
         </p>
         <hr className="tracejado" />
         <dl style={{ display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '8px 20px', margin: 0 }}>
@@ -91,36 +91,36 @@ export function CadastroForm() {
           <dd className="mono" style={{ margin: 0 }}>
             {result.cpfMasked}
           </dd>
-          <dt className="mudo">Chave Pix</dt>
+          <dt className="mudo">Pix key</dt>
           <dd className="mono" style={{ margin: 0 }}>
             {result.pixKeyMasked} <span className="mudo pequeno">({TYPES[result.pixKeyType] ?? result.pixKeyType})</span>
           </dd>
-          <dt className="mudo">Carteira</dt>
+          <dt className="mudo">Wallet</dt>
           <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>
             <span className="mono">{result.wallet}</span>
           </dd>
-          <dt className="mudo">Política</dt>
+          <dt className="mudo">Policy</dt>
           <dd style={{ margin: 0 }}>
-            {result.policyId} · carteiras identificadas
+            {result.policyId} · identified wallets
           </dd>
         </dl>
         <hr className="tracejado" />
         <p>
           {result.alreadyOnPolicy ? (
-            'A carteira já estava na lista; o cadastro foi atualizado.'
+            'The wallet was already on the list; the sign-up was updated.'
           ) : (
             <>
-              Entrou na lista no Tempo:{' '}
-              {result.txHash && <TxLink hash={result.txHash} explorer={result.explorer} lang="pt" />}
+              Added to the list on Tempo:{' '}
+              {result.txHash && <TxLink hash={result.txHash} explorer={result.explorer} lang="en" />}
             </>
           )}
         </p>
         <p className="pequeno mudo" style={{ marginTop: 10 }}>
-          A partir de agora o protocolo deixa tBRL chegar nessa carteira, e recusa a mesma transferência para qualquer
-          carteira fora da lista. Nesta demonstração, só a carteira da Ana tem chave no servidor para assinar saques.
+          From now on the protocol lets tBRL reach this wallet, and refuses the same transfer to any wallet not on the
+          list. In this demo, only Ana&apos;s wallet has a server-side key to sign withdrawals.
         </p>
         <p style={{ marginTop: 20 }}>
-          <Link href="/console?tab=allowlist">Ver na lista do console</Link>
+          <Link href="/console?tab=allowlist">See it on the console list</Link>
         </p>
       </Comprovante>
     );
@@ -132,7 +132,7 @@ export function CadastroForm() {
     <form onSubmit={submit} style={{ display: 'grid', gap: 20, maxWidth: 480 }}>
       <div>
         <label className="rotulo" htmlFor="name">
-          Nome completo
+          Full name
         </label>
         <input className="campo" id="name" name="name" autoComplete="name" required aria-invalid={invalid === 'name' || undefined} />
       </div>
@@ -150,27 +150,27 @@ export function CadastroForm() {
           aria-invalid={invalid === 'cpf' || undefined}
         />
         <p className="pequeno mudo" style={{ marginTop: 6 }}>
-          Use um CPF de teste. A tela e o relatório mostram só os dígitos do meio.
+          Use a test CPF. The screen and the report show only the middle digits.
         </p>
       </div>
       <div>
         <label className="rotulo" htmlFor="pixKey">
-          Chave Pix
+          Pix key
         </label>
         <input className="campo" id="pixKey" name="pixKey" required aria-invalid={invalid === 'pixKey' || undefined} />
         <p className="pequeno mudo" style={{ marginTop: 6 }}>
-          E-mail, telefone, CPF, CNPJ ou chave aleatória.
+          Email, phone, CPF, CNPJ, or a random key.
         </p>
       </div>
       <div>
         <label className="rotulo" htmlFor="city">
-          Cidade <span className="mudo" style={{ fontWeight: 400 }}>(opcional)</span>
+          City <span className="mudo" style={{ fontWeight: 400 }}>(optional)</span>
         </label>
         <input className="campo" id="city" name="city" autoComplete="address-level2" />
       </div>
       <div>
         <label className="rotulo" htmlFor="wallet">
-          Carteira no Tempo
+          Tempo wallet
         </label>
         <input
           className="campo mono"
@@ -184,10 +184,10 @@ export function CadastroForm() {
         />
         <p className="pequeno mudo" style={{ marginTop: 6 }}>
           <button type="button" className="botao botao--secundario" onClick={generateWallet}>
-            Gerar uma carteira de teste
+            Generate a test wallet
           </button>
           <span style={{ display: 'block', marginTop: 6 }}>
-            A carteira gerada aqui é só um endereço, sem chave: serve para mostrar a política, não para assinar.
+            The wallet generated here is just an address, with no key: enough to show the policy, not to sign.
           </span>
         </p>
       </div>
@@ -196,11 +196,11 @@ export function CadastroForm() {
 
       <div>
         <button type="submit" className="botao" disabled={state.kind === 'enviando'} aria-busy={state.kind === 'enviando'}>
-          Cadastrar e entrar na lista
+          Sign up and join the list
         </button>
         {state.kind === 'enviando' && (
           <p className="pequeno mudo" style={{ marginTop: 8 }}>
-            Mandando a inclusão para a política no Tempo…
+            Sending the inclusion to the policy on Tempo…
           </p>
         )}
       </div>

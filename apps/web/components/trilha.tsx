@@ -19,7 +19,7 @@ const STATE = {
   en: { feito: 'done', agora: 'in progress', falhou: "didn't happen", esperando: 'not yet' },
 } as const;
 
-export function Trilha({ items, lang = 'pt', compacta = false }: { items: TrilhaItem[]; lang?: Lang; compacta?: boolean }) {
+export function Trilha({ items, lang = 'en', compacta = false }: { items: TrilhaItem[]; lang?: Lang; compacta?: boolean }) {
   return (
     <ol className={compacta ? 'trilha compacta' : 'trilha'}>
       {items.map((item) => (
@@ -31,7 +31,7 @@ export function Trilha({ items, lang = 'pt', compacta = false }: { items: Trilha
               <span className="sr-only"> ({STATE[lang][item.state]})</span>
             </p>
             {item.translation && (
-              <p className="passo__traducao" lang="en">
+              <p className="passo__traducao">
                 {item.translation}
               </p>
             )}

@@ -18,7 +18,7 @@ export default async function AdminPage() {
 
   return (
     <>
-      <Faixa lang="pt" mode={mode.ok ? mode.data : 'simulator'} />
+      <Faixa lang="en" mode={mode.ok ? mode.data : 'simulator'} />
       <main className="pagina pagina--media">
         <header className="topo">
           <Marca />
@@ -29,7 +29,7 @@ export default async function AdminPage() {
 
         <h1>Admin</h1>
         <p className="mudo" style={{ marginTop: 6, maxWidth: '38em' }}>
-          Interno, para a gravação da demo técnica. O token fica só nesta aba, enquanto ela estiver aberta.
+          Internal, for the technical demo recording. The token stays only in this tab, while it is open.
         </p>
 
         <AdminPanels />

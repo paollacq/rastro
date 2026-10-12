@@ -10,13 +10,13 @@ export function ReserveGauge({
   balance,
   inFlight = '0.00',
   inFlightCount = 0,
-  lang,
+  lang = 'en',
 }: {
   supply: string;
   balance: string;
   inFlight?: string;
   inFlightCount?: number;
-  lang: Lang;
+  lang?: Lang;
 }) {
   const s = Number(supply);
   const b = Number(balance) + Number(inFlight);

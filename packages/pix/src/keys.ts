@@ -104,8 +104,8 @@ export function parsePixKey(input: string): PixKey {
     return { type: 'phone', value: `+${phone}`, masked: `+55 ${area} •••••-${phone.slice(-4)}` };
   }
 
-  if (only.length === 11) throw new InvalidKey('o CPF da chave não passa no dígito verificador');
-  if (only.length === 14) throw new InvalidKey('o CNPJ da chave não passa no dígito verificador');
-  if (value.includes('@')) throw new InvalidKey('confira o e-mail da chave: falta o @ ou o domínio');
-  throw new InvalidKey('chave Pix não reconhecida: use e-mail, telefone, CPF, CNPJ ou chave aleatória');
+  if (only.length === 11) throw new InvalidKey('the CPF in the key fails the check digit');
+  if (only.length === 14) throw new InvalidKey('the CNPJ in the key fails the check digit');
+  if (value.includes('@')) throw new InvalidKey('check the email in the key: missing @ or domain');
+  throw new InvalidKey('Pix key not recognized: use email, phone, CPF, CNPJ or a random key');
 }

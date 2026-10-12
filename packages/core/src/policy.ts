@@ -27,23 +27,23 @@ export interface PolicyTest {
 
 export async function testTransfer(ctx: Context, input: { wallet: string; amountBrl?: string }): Promise<PolicyTest> {
   if (!isAddress(input.wallet)) {
-    throw new AppError(400, 'carteira inválida: são 42 caracteres começando com 0x', 'invalid_wallet');
+    throw new AppError(400, 'invalid wallet: 42 characters starting with 0x', 'invalid_wallet');
   }
   const wallet = getAddress(input.wallet);
   const { policyId } = ctx.addresses;
   if (policyId === undefined) {
-    throw new AppError(409, 'não há política TIP-403 configurada; rode pnpm chain:setup', 'no_policy');
+    throw new AppError(409, 'no TIP-403 policy configured; run pnpm chain:setup', 'no_policy');
   }
 
   let amount: bigint;
   try {
     amount = floorToCents(brlToBase(input.amountBrl ?? '1.00'));
   } catch {
-    throw new AppError(400, 'valor inválido: use reais com até dois centavos, como 1.00', 'invalid_amount');
+    throw new AppError(400, 'invalid amount: use reais with up to two cents, like 1.00', 'invalid_amount');
   }
   if (amount <= 0n) throw new AppError(400, 'o valor precisa ser maior que zero', 'invalid_amount');
   if (amount > MOST) {
-    throw new AppError(400, `este teste manda no máximo R$ ${baseToBrl(MOST)}`, 'invalid_amount');
+    throw new AppError(400, `this test sends at most R$ ${baseToBrl(MOST)}`, 'invalid_amount');
   }
 
   const identified = await ctx.client.readContract({
@@ -65,7 +65,7 @@ export async function testTransfer(ctx: Context, input: { wallet: string; amount
   if (held < amount) {
     throw new AppError(
       409,
-      `a carteira da demo tem R$ ${baseToBrl(floorToCents(held))} em tBRL; pague a fatura #0047 antes de testar a política`,
+      `the demo wallet holds R$ ${baseToBrl(floorToCents(held))} in tBRL; pay invoice #0047 before testing the policy`,
       'insufficient_balance',
     );
   }
@@ -85,7 +85,7 @@ export async function testTransfer(ctx: Context, input: { wallet: string; amount
     const name = revertName(error);
     // Only a policy refusal is a blocked attempt. Anything else is our own problem.
     if (name !== 'PolicyForbids' && name !== 'InvalidRecipient') {
-      const how = name === 'ContractPaused' ? 'o tBRL está pausado' : `a transferência de teste não passou: ${name}`;
+      const how = name === 'ContractPaused' ? 'tBRL is paused' : `the test transfer did not go through: ${name}`;
       throw new AppError(409, how, name === 'ContractPaused' ? 'paused' : 'test_failed');
     }
     const reason = `wallet not on policy ${policyId} (identified wallets); the node refused with ${name}`;
@@ -114,7 +114,7 @@ export async function testTransfer(ctx: Context, input: { wallet: string; amount
   const hash = (await ana.writeContract(call as never)) as Hash;
   const receipt = await ctx.client.waitForTransactionReceipt({ hash });
   if (receipt.status !== 'success') {
-    throw new AppError(502, `a transferência de teste reverteu: ${hash}`, 'reverted');
+    throw new AppError(502, `the test transfer reverted: ${hash}`, 'reverted');
   }
   return {
     from: account.address,

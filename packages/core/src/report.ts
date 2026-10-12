@@ -3,7 +3,7 @@ import type { OperationRow } from './views.ts';
 // "Export report (CSV)" on the console: one line per operation, with who sent the money,
 // who got it, at what rate, and every Pix and Tempo reference along the way. It covers the
 // origin and destination data BCB Res. 521 asks institutions to keep; it is not the
-// official filing layout. Plain RFC 4180, dot decimals, times in Brasília with the offset.
+// official filing layout. Plain RFC 4180, dot decimals, times in Brasilia with the offset.
 
 const COLUMNS = [
   'time_brt',

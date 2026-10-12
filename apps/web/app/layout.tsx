@@ -24,14 +24,12 @@ const mono = localFont({
 
 export const metadata: Metadata = {
   title: { default: 'rastro', template: '%s · rastro' },
-  description: 'Dólar entra, real sai por Pix, e cada transferência deixa rastro. Demonstração na testnet do Tempo.',
+  description: 'Dollars in on Tempo, reais out by Pix, and every transfer leaves a trail. Demo on the Tempo testnet.',
 };
 
-// Each page brings its own warning strip, in its own language. English pages mark
-// themselves with lang="en" on their main element.
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

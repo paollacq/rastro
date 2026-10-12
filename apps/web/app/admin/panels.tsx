@@ -67,12 +67,12 @@ export function AdminPanels() {
       });
       const answer = await res.json();
       if (!res.ok) {
-        setNote({ kind: 'erro', text: answer.error ?? `o servidor respondeu ${res.status}` });
+        setNote({ kind: 'erro', text: answer.error ?? `the server answered ${res.status}` });
         return null;
       }
       return answer as Record<string, string | null>;
     } catch (error) {
-      setNote({ kind: 'erro', text: `não deu para falar com o servidor: ${String(error)}` });
+      setNote({ kind: 'erro', text: `couldn't reach the server: ${String(error)}` });
       return null;
     } finally {
       setBusy(null);
@@ -96,7 +96,7 @@ export function AdminPanels() {
           autoComplete="off"
           value={token}
           onChange={(e) => remember(e.target.value)}
-          placeholder="o mesmo do .env do servidor"
+          placeholder="the same one in the server .env"
           style={{ maxWidth: 420 }}
         />
       </section>
@@ -108,40 +108,40 @@ export function AdminPanels() {
           ) : (
             <p className="aviso" role="status">
               {note.text}{' '}
-              {note.tx && <TxLink hash={note.tx} explorer={EXPLORER} lang="pt" />}
+              {note.tx && <TxLink hash={note.tx} explorer={EXPLORER} lang="en" />}
             </p>
           )}
         </div>
       )}
 
       <section className="secao" aria-labelledby="lastro">
-        <h2 id="lastro">Lastro</h2>
+        <h2 id="lastro">Backing</h2>
         {reserves?.supply.ok && reserves.balance.ok ? (
           <>
             <div style={{ margin: '14px 0' }}>
-              <ReserveGauge supply={reserves.supply.value} balance={reserves.balance.value} lang="pt" />
+              <ReserveGauge supply={reserves.supply.value} balance={reserves.balance.value} lang="en" />
             </div>
             <p style={{ fontWeight: 600, color: short ? 'var(--recusa)' : 'var(--conferido)' }}>
               {short ? (
                 <>
-                  Faltam <Money value={reserves.shortfall ?? '0'} currency="BRL" lang="pt" /> de lastro.
+                  Short by <Money value={reserves.shortfall ?? '0'} currency="BRL" lang="en" /> of backing.
                 </>
               ) : (
-                'Bate: todo tBRL em circulação tem um real atrás.'
+                'Match: every tBRL in circulation has a real behind it.'
               )}
             </p>
           </>
         ) : (
-          <p className="mudo">Lendo o supply e o saldo…</p>
+          <p className="mudo">Reading supply and balance…</p>
         )}
         <p className="mudo pequeno" style={{ marginTop: 6 }}>
-          Pix por {reserves?.provider ?? '…'}.{' '}
+          Pix via {reserves?.provider ?? '…'}.{' '}
           {paused ? (
             <strong style={{ color: 'var(--recusa)' }}>
-              tBRL pausado{reserves?.pausedAt ? ` às ${dateTime(reserves.pausedAt, 'pt')}` : ''}: nada se move até restaurar.
+              tBRL paused{reserves?.pausedAt ? ` at ${dateTime(reserves.pausedAt, 'en')}` : ''}: nothing moves until restored.
             </strong>
           ) : (
-            'tBRL funcionando.'
+            'tBRL working.'
           )}
         </p>
 
@@ -152,10 +152,10 @@ export function AdminPanels() {
             disabled={!token || busy !== null}
             onClick={async () => {
               const answer = await call('check', '/api/admin/reserves', { action: 'check' });
-              if (answer) setNote({ kind: 'ok', text: 'Conferido agora.' });
+              if (answer) setNote({ kind: 'ok', text: 'Checked now.' });
             }}
           >
-            Conferir agora
+            Check now
           </button>
           <button
             type="button"
@@ -166,13 +166,13 @@ export function AdminPanels() {
               if (answer) {
                 setNote({
                   kind: 'ok',
-                  text: `Emitidos ${money(String(answer.mintedBrl), 'BRL', 'pt')} sem lastro. O monitor pausa o tBRL em até 15 s.`,
+                  text: `Minted ${money(String(answer.mintedBrl), 'BRL', 'en')} without backing. The monitor pauses tBRL within 15 s.`,
                   tx: answer.txHash,
                 });
               }
             }}
           >
-            Quebrar o lastro: emitir R$ 1.000,00
+            Break the backing: mint R$ 1,000.00
           </button>
           <button
             type="button"
@@ -183,30 +183,30 @@ export function AdminPanels() {
               if (answer) {
                 setNote({
                   kind: 'ok',
-                  text: `Restaurado: ${money(String(answer.burnedBrl), 'BRL', 'pt')} queimados e o tBRL despausado.`,
+                  text: `Restored: ${money(String(answer.burnedBrl), 'BRL', 'en')} burned and tBRL unpaused.`,
                   tx: answer.burnTx ?? answer.unpauseTx,
                 });
               }
             }}
           >
-            Restaurar
+            Restore
           </button>
         </div>
         <p className="pequeno mudo" style={{ marginTop: 10 }}>
-          Quebrar emite tBRL para a tesouraria sem real nenhum atrás. Restaurar despausa e queima o excesso.
+          Break mints tBRL to the treasury with no real behind it. Restore unpauses and burns the excess.
         </p>
       </section>
 
       <section className="secao" aria-labelledby="politica">
-        <h2 id="politica">Política</h2>
+        <h2 id="politica">Policy</h2>
         <p className="mudo" style={{ marginTop: 4 }}>
-          Tenta mandar R$ 1,00 do tBRL da Ana para outra carteira. Fora da lista da política, o protocolo recusa antes
-          de entrar em bloco, e a tentativa aparece na aba Blocked do console.
+          Tries to send R$ 1.00 of Ana&apos;s tBRL to another wallet. If it is off the policy list, the protocol refuses
+          before it hits a block, and the attempt shows up in the Blocked tab of the console.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 14, alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 320px' }}>
             <label className="rotulo" htmlFor="wallet">
-              Carteira
+              Wallet
             </label>
             <input
               className="campo mono"
@@ -225,13 +225,13 @@ export function AdminPanels() {
               if (answer) {
                 setNote(
                   answer.allowed
-                    ? { kind: 'ok', text: 'A política deixou passar: R$ 1,00 em tBRL enviados.', tx: answer.txHash }
-                    : { kind: 'erro', text: `Barrado pelo protocolo: ${answer.reason}` },
+                    ? { kind: 'ok', text: 'The policy let it through: R$ 1.00 of tBRL sent.', tx: answer.txHash }
+                    : { kind: 'erro', text: `Blocked by the protocol: ${answer.reason}` },
                 );
               }
             }}
           >
-            Tentar enviar R$ 1,00
+            Try sending R$ 1.00
           </button>
         </div>
       </section>
@@ -239,8 +239,8 @@ export function AdminPanels() {
       <section className="secao" aria-labelledby="pix">
         <h2 id="pix">Pix</h2>
         <p className="mudo" style={{ marginTop: 4 }}>
-          A credencial do sandbox dura 24 h. Quando ela para de responder, o worker troca sozinho para o simulador; aqui
-          dá para trocar na mão.
+          The sandbox credential lasts 24 h. When it stops answering, the worker switches to the simulator on its own;
+          here you can switch by hand.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 14 }}>
           {(['sandbox', 'simulator'] as const).map((mode) => (
@@ -251,10 +251,10 @@ export function AdminPanels() {
               disabled={!token || busy !== null || reserves?.provider === (mode === 'sandbox' ? 'payzu-sandbox' : 'simulator')}
               onClick={async () => {
                 const answer = await call(mode, '/api/admin/pix-mode', { mode });
-                if (answer) setNote({ kind: 'ok', text: `Novos saques vão pelo ${answer.mode}.` });
+                if (answer) setNote({ kind: 'ok', text: `New withdrawals go through ${answer.mode}.` });
               }}
             >
-              {mode === 'sandbox' ? 'Usar o sandbox da PayZu' : 'Usar o simulador'}
+              {mode === 'sandbox' ? 'Use the PayZu sandbox' : 'Use the simulator'}
             </button>
           ))}
         </div>

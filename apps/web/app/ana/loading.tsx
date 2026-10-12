@@ -5,12 +5,12 @@ import { currentPixMode } from '../../lib/load';
 export default function Loading() {
   return (
     <>
-      <Faixa lang="pt" mode={currentPixMode()} />
+      <Faixa lang="en" mode={currentPixMode()} />
       <main className="pagina" aria-busy="true">
         <header className="topo">
           <Esqueleto largura="84px" altura="22px" />
         </header>
-        <span className="sr-only">Carregando a carteira…</span>
+        <span className="sr-only">Loading the wallet…</span>
         <Esqueleto largura="40%" altura="28px" />
         <Esqueleto largura="65%" margem={10} />
         <div className="secao">

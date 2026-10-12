@@ -4,15 +4,16 @@ import { short, type Lang } from '../lib/format';
 export function TxLink({
   hash,
   explorer,
-  lang,
+  lang = 'en',
   kind = 'tx',
 }: {
   hash: string;
   explorer: string;
-  lang: Lang;
+  lang?: Lang;
   kind?: 'tx' | 'address';
 }) {
-  const where = lang === 'pt' ? 'abre no explorer do Tempo' : 'opens in the Tempo explorer';
+  const where = 'opens in the Tempo explorer';
+  void lang;
   return (
     <a className="mono tx" href={`${explorer}/${kind}/${hash}`} target="_blank" rel="noreferrer" title={hash}>
       {short(hash)}

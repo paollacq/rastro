@@ -26,7 +26,7 @@ export interface QuoteOffer {
 export async function createQuote(ctx: Context, invoiceId: string): Promise<QuoteOffer> {
   const invoice = await ctx.db.invoice(invoiceId);
   if (!invoice) throw notFound('fatura');
-  if (invoice.status === 'paga') throw new AppError(409, 'esta fatura já foi paga', 'invoice_paid');
+  if (invoice.status === 'paga') throw new AppError(409, 'this invoice has already been paid', 'invoice_paid');
   const recipient = await ctx.db.user(invoice.recipientId);
   if (!recipient) throw notFound('recebedora');
 
@@ -94,19 +94,19 @@ export async function createQuote(ctx: Context, invoiceId: string): Promise<Quot
 // On Tempo the approve and the fill go in one transaction with one signature.
 export async function payQuote(ctx: Context, quoteId: string): Promise<{ txHash: Hash; alreadyPaid: boolean }> {
   const row = await ctx.db.quote(quoteId);
-  if (!row) throw notFound('cotação');
+  if (!row) throw notFound('quote');
   if (row.fillTx) return { txHash: row.fillTx as Hash, alreadyPaid: true };
-  if ((await ctx.db.invoice(row.invoiceId))?.status === 'paga') throw new AppError(409, 'esta fatura já foi paga', 'invoice_paid');
-  if (row.expiry.getTime() <= ctx.now().getTime()) throw new AppError(409, 'a cotação venceu; peça outra', 'quote_expired');
+  if ((await ctx.db.invoice(row.invoiceId))?.status === 'paga') throw new AppError(409, 'this invoice has already been paid', 'invoice_paid');
+  if (row.expiry.getTime() <= ctx.now().getTime()) throw new AppError(409, 'the quote expired; request another', 'quote_expired');
 
   const payer = ctx.signer('payer');
   if (!isAddressEqual(payer.account.address, row.payer as Hex)) {
-    throw new AppError(403, 'esta demo só paga com a carteira de PAYER_PRIVATE_KEY', 'wrong_payer');
+    throw new AppError(403, 'this demo only pays from the PAYER_PRIVATE_KEY wallet', 'wrong_payer');
   }
 
   // One payment per invoice at a time: a double click gets a 409, not a second fill.
   if (!(await ctx.db.claimInvoice(row.invoiceId, quoteId))) {
-    throw new AppError(409, 'já tem um pagamento desta fatura em andamento', 'payment_in_progress');
+    throw new AppError(409, 'another payment of this invoice is in progress', 'payment_in_progress');
   }
   try {
     const txHash = await fill(ctx, row);
@@ -132,7 +132,7 @@ async function fill(ctx: Context, row: NonNullable<Awaited<ReturnType<Context['d
   const { rfq } = ctx.addresses;
   // A quote already used on-chain (a retry after a lost answer) is not sent again.
   if (await ctx.client.readContract({ address: rfq, abi: rastroRfqAbi, functionName: 'nonceUsed', args: [quote.nonce] })) {
-    throw new AppError(409, 'esta cotação já foi usada', 'quote_used');
+    throw new AppError(409, 'this quote has already been used', 'quote_used');
   }
   // Approve the token the RFQ actually pulls (pathUSD on Tempo), read from the contract itself.
   const usd = await ctx.client.readContract({ address: rfq, abi: rastroRfqAbi, functionName: 'usd' });

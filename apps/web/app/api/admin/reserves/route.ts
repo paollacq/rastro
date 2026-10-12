@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       case 'restore':
         return { action, ...(await restoreReserve(ctx)) };
       default:
-        throw new AppError(400, 'action precisa ser "check", "break" ou "restore"', 'bad_request');
+        throw new AppError(400, 'action must be "check", "break" or "restore"', 'bad_request');
     }
   });
 }

@@ -1,7 +1,7 @@
 // Checks the CSV the console exports against what is on the chain, line by line.
 //
 //   pnpm relatorio:conferir                         every operation
-//   pnpm relatorio:conferir --from 2026-10-01       from that day (Brasília), inclusive
+//   pnpm relatorio:conferir --from 2026-10-01       from that day (Brasilia), inclusive
 //   pnpm relatorio:conferir --to 2026-10-31 --csv   also writes the file it checked
 import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';

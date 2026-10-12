@@ -40,10 +40,10 @@ export interface KycResult {
 export async function registerClient(ctx: Context, input: KycInput): Promise<KycResult> {
   const name = input.name.trim().replace(/\s+/g, ' ');
   if (!/^[\p{L}][\p{L}'.-]*( [\p{L}'.-]+)+$/u.test(name)) {
-    throw new AppError(400, 'escreva o nome completo, como está no documento', 'invalid_name');
+    throw new AppError(400, 'write the full name, as it is on the document', 'invalid_name');
   }
   if (!isCpf(input.cpf)) {
-    throw new AppError(400, 'esse CPF não passa no dígito verificador; confira os números', 'invalid_cpf');
+    throw new AppError(400, 'this CPF fails the check digit; verify the numbers', 'invalid_cpf');
   }
   let key;
   try {
@@ -53,22 +53,22 @@ export async function registerClient(ctx: Context, input: KycInput): Promise<Kyc
     throw error;
   }
   if (!isAddress(input.wallet)) {
-    throw new AppError(400, 'carteira inválida: são 42 caracteres começando com 0x', 'invalid_wallet');
+    throw new AppError(400, 'invalid wallet: 42 characters starting with 0x', 'invalid_wallet');
   }
   const wallet = getAddress(input.wallet);
   const { policyId } = ctx.addresses;
   if (policyId === undefined) {
-    throw new AppError(409, 'não há política TIP-403 configurada; rode pnpm chain:setup', 'no_policy');
+    throw new AppError(409, 'no TIP-403 policy configured; run pnpm chain:setup', 'no_policy');
   }
 
   const cpfHash = await hashCpf(ctx, input.cpf);
   const byCpf = await ctx.db.userByCpfHash(cpfHash);
   const byWallet = await ctx.db.userByWallet(wallet);
   if (byCpf && byCpf.wallet.toLowerCase() !== wallet.toLowerCase()) {
-    throw new AppError(409, 'esse CPF já tem cadastro com outra carteira', 'cpf_taken');
+    throw new AppError(409, 'this CPF is already signed up with another wallet', 'cpf_taken');
   }
   if (byWallet && byWallet.id !== byCpf?.id) {
-    throw new AppError(409, 'essa carteira já é de outro cadastro', 'wallet_taken');
+    throw new AppError(409, 'this wallet belongs to another sign-up', 'wallet_taken');
   }
 
   // The policy is the thing that matters, so it is read from the registry, not from us.
@@ -90,7 +90,7 @@ export async function registerClient(ctx: Context, input: KycInput): Promise<Kyc
         functionName: 'modifyPolicyWhitelist',
         args: [policyId, wallet, true],
       },
-      'a inclusão na política',
+      'adding to the policy',
     );
   }
 

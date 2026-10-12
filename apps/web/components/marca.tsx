@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 // "rastro" and a trail of three dots out of the last o. The team draws the real one; this
 // stand-in only fixes its proportions and color.
-export function Marca({ grande = false, rotulo = 'rastro, página inicial' }: { grande?: boolean; rotulo?: string }) {
+export function Marca({ grande = false, rotulo = 'rastro, home' }: { grande?: boolean; rotulo?: string }) {
   return (
     <Link href="/" className={grande ? 'marca marca--grande' : 'marca'} aria-label={rotulo}>
       rastro

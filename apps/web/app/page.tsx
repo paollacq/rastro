@@ -14,13 +14,13 @@ import { WaitlistForm } from './waitlist-form';
 export const dynamic = 'force-dynamic';
 
 const TITLES: Record<string, string> = {
-  emitida: 'Fatura emitida',
-  paga: 'Pago em dólar no Tempo',
-  convertida: 'Convertido em reais pela PTAX',
-  carteira: 'Na carteira identificada',
-  pix: 'Pix enviado',
-  queima: 'Queimado no Tempo com o mesmo ID',
-  devolvida: 'Devolvido à carteira',
+  emitida: 'Invoice issued',
+  paga: 'Paid in dollars on Tempo',
+  convertida: 'Converted to reais at the PTAX rate',
+  carteira: 'In the identified wallet',
+  pix: 'Pix sent',
+  queima: 'Burned on Tempo with the same ID',
+  devolvida: 'Returned to the wallet',
 };
 
 // The landing: one sentence, a real trail instead of an illustration, a waitlist that
@@ -33,40 +33,37 @@ export default async function Home() {
 
   return (
     <>
-      <Faixa lang="pt" mode={mode.ok ? mode.data : currentPixMode()} />
+      <Faixa lang="en" mode={mode.ok ? mode.data : currentPixMode()} />
       <main className="pagina pagina--media">
         <header className="topo">
           <Marca />
-          <nav className="topo__lado" aria-label="Demonstração">
-            <Link href="#demo">Ver a demo</Link>
+          <nav className="topo__lado" aria-label="Demo">
+            <Link href="#demo">See the demo</Link>
           </nav>
         </header>
 
         <section>
           <h1 style={{ fontSize: 'var(--t32)', lineHeight: 1.15, maxWidth: '19em' }}>
-            Dólar entra, real sai por Pix, e cada transferência deixa rastro.
+            Dollars in, reais out by Pix, and every transfer leaves a trail.
           </h1>
-          <p lang="en" className="mudo" style={{ marginTop: 10, fontSize: 'var(--t18)' }}>
-            Dollars in on Tempo. Reais out by Pix. Every transfer leaves a trail.
-          </p>
           <p style={{ marginTop: 20, maxWidth: '36em' }}>
-            Para quem mora no Brasil e fatura para fora: o cliente paga em dólar na rede Tempo, o valor vira real pela PTAX
-            do Banco Central e sai por Pix. O ID do Pix fica gravado on-chain no memo da queima, então dá para conferir os 32
-            caracteres de um lado e do outro.
+            For people in Brazil invoicing abroad: the client pays in dollars on the Tempo network, the amount is
+            converted to reais at the Central Bank&apos;s PTAX rate, and leaves by Pix. The Pix ID is written on-chain
+            in the burn memo, so the 32 characters can be checked on both sides.
           </p>
         </section>
 
         <section className="secao" aria-labelledby="exemplo">
           <h2 id="exemplo" className="sr-only">
-            Um pagamento de verdade, na testnet
+            A real payment on the testnet
           </h2>
           {trace && trail ? (
             <>
               <Comprovante
                 esquerda={<span className="mono">{trace.invoice?.id ?? trail.withdrawal?.id}</span>}
-                direita={<span className="mono">{latest(trail) ? dateTime(latest(trail) as string, 'pt') : 'testnet Moderato'}</span>}
+                direita={<span className="mono">{latest(trail) ? dateTime(latest(trail) as string, 'en') : 'Moderato testnet'}</span>}
               >
-                <Trilha compacta items={showcaseItems(trace, trail)} />
+                <Trilha compacta items={showcaseItems(trace, trail)} lang="en" />
                 {trail.comparison?.matches && (
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
                     <Carimbo at={trail.comparison.at} entra={false} />
@@ -75,54 +72,54 @@ export default async function Home() {
               </Comprovante>
               <p className="pequeno mudo" style={{ marginTop: 14 }}>
                 {caption(trace, trail)}{' '}
-                <Link href={`/trace/${trace.invoice?.id ?? trail.withdrawal?.id}`}>Abrir o rastro completo</Link>
+                <Link href={`/trace/${trace.invoice?.id ?? trail.withdrawal?.id}`}>Open the full trail</Link>
               </p>
             </>
           ) : showcase.ok ? (
             <p className="mudo">
-              O rastro de exemplo aparece aqui assim que a fatura #0047 da demonstração for paga na testnet.
+              The example trail appears here as soon as demo invoice #0047 is paid on the testnet.
             </p>
           ) : (
             <p className="mudo">
-              O rastro de exemplo não carregou agora; recarregue em alguns segundos.{' '}
+              The example trail didn&apos;t load right now; reload in a few seconds.{' '}
               <span className="mono pequeno">({showcase.reason})</span>
             </p>
           )}
         </section>
 
         <section className="secao" aria-labelledby="lista">
-          <h2 id="lista">Lista de espera</h2>
+          <h2 id="lista">Waitlist</h2>
           <p className="mudo" style={{ marginTop: 4, marginBottom: 16 }}>
-            Avisamos por e-mail quando abrir para os primeiros usuários. Só para isso.
+            We&apos;ll email you when it opens to the first users. That&apos;s it.
           </p>
           <WaitlistForm />
         </section>
 
         <section className="secao" id="demo" aria-labelledby="demo-titulo">
-          <h2 id="demo-titulo">A demonstração, em cinco telas</h2>
+          <h2 id="demo-titulo">The demo, in five screens</h2>
           <ol style={{ paddingLeft: 20, marginTop: 8, display: 'grid', gap: 8 }}>
             <li>
-              <Link href="/cadastro">O cadastro</Link>{' '}
-              <span className="mudo">que põe a carteira na lista da política, no Tempo</span>
+              <Link href="/cadastro">Sign-up</Link>{' '}
+              <span className="mudo">that puts the wallet on the policy list, on Tempo</span>
             </li>
             <li>
-              <Link href="/invoice/0047">A fatura que o cliente de fora paga</Link>{' '}
-              <span className="mudo">(em inglês, como ele veria)</span>
+              <Link href="/invoice/0047">The invoice the client abroad pays</Link>
             </li>
             <li>
-              <Link href="/ana">A tela da Ana</Link> <span className="mudo">com o saldo, o saque por Pix e a opção automática</span>
+              <Link href="/ana">Ana&apos;s screen</Link>{' '}
+              <span className="mudo">with the balance, the Pix withdrawal, and the automatic option</span>
             </li>
             <li>
-              <Link href="/trace/fatura-0047">O rastro do pagamento</Link>{' '}
-              <span className="mudo">do dólar à queima, com o carimbo de conferido</span>
+              <Link href="/trace/fatura-0047">The payment trail</Link>{' '}
+              <span className="mudo">from the dollar to the burn, with the verified stamp</span>
             </li>
             <li>
-              <Link href="/console">O console da corretora</Link>{' '}
-              <span className="mudo">(em inglês): operações, lista de carteiras, bloqueios e lastro</span>
+              <Link href="/console">The exchange console</Link>{' '}
+              <span className="mudo">operations, wallet list, blocks, and reserves</span>
             </li>
           </ol>
           <p className="pequeno mudo" style={{ marginTop: 12 }}>
-            Personagens fictícios, testnet do Tempo e Pix de teste: nenhum dinheiro de verdade passa por aqui.
+            Fictional characters, Tempo testnet, and test Pix: no real money flows through here.
           </p>
         </section>
 
@@ -136,15 +133,15 @@ export default async function Home() {
                   {person.role && ` (${person.role})`}
                 </span>
               ))}
-              {city && `, de ${city}`}.
+              {city && `, from ${city}`}.
             </p>
           )}
           <p>
-            Feito no hackathon Crypto World&apos;s Fair da Colosseum, trilha Tempo, em outubro de 2026.
+            Built at the Colosseum Crypto World&apos;s Fair hackathon, Tempo track, October 2026.
             {repository && (
               <>
                 {' '}
-                <a href={repository}>Código</a>.
+                <a href={repository}>Code</a>.
               </>
             )}
           </p>
@@ -160,15 +157,15 @@ function showcaseItems(trace: NonNullable<Awaited<ReturnType<typeof showcaseTrac
     state: step.state,
     title:
       step.key === 'convertida' && step.state === 'feito' && trace.quote
-        ? `Convertido em ${money(trace.quote.brlOut, 'BRL', 'pt')} pela PTAX`
+        ? `Converted to ${money(trace.quote.brlOut, 'BRL', 'en')} at the PTAX rate`
         : step.key === 'pix' && step.state === 'feito' && trail.withdrawal?.e2eId
           ? (
               <>
-                Pix enviado, ID <span className="mono" style={{ fontWeight: 400 }}>{trail.withdrawal.e2eId}</span>
+                Pix sent, ID <span className="mono" style={{ fontWeight: 400 }}>{trail.withdrawal.e2eId}</span>
               </>
             )
           : TITLES[step.key],
-    time: step.at ? stamp(step.at, 'pt') : null,
+    time: step.at ? stamp(step.at, 'en') : null,
   }));
 }
 
@@ -177,8 +174,8 @@ const latest = (trail: ReturnType<typeof trailOf>) => [...trail.steps].reverse()
 function caption(trace: NonNullable<Awaited<ReturnType<typeof showcaseTrace>>>, trail: ReturnType<typeof trailOf>) {
   const paid = trace.invoice?.paidAt;
   if (trail.comparison?.matches) {
-    return `Um pagamento feito na testnet, do começo ao fim: o memo da queima tem os mesmos ${trail.comparison.length} caracteres do ID do Pix.`;
+    return `A payment made on the testnet, from start to finish: the burn memo carries the same ${trail.comparison.length} characters as the Pix ID.`;
   }
-  if (paid) return `Fatura #${trace.invoice?.number} da demonstração, paga na testnet em ${dateTime(new Date(paid).toISOString(), 'pt')}.`;
-  return `Fatura #${trace.invoice?.number ?? ''} da demonstração, esperando pagamento.`;
+  if (paid) return `Demo invoice #${trace.invoice?.number}, paid on the testnet at ${dateTime(new Date(paid).toISOString(), 'en')}.`;
+  return `Demo invoice #${trace.invoice?.number ?? ''}, waiting for payment.`;
 }

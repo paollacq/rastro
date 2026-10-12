@@ -139,7 +139,7 @@ describe.skipIf(!rpc || !dbUrl)('invoice 0047, paid and withdrawn to Pix, on a l
     await payQuote(ctx, offer.id);
     expect(await balanceOf(account('ana').address)).toBe(8_293_260_000n);
     await expect(payQuote(ctx, offer.id)).resolves.toMatchObject({ alreadyPaid: true });
-    await expect(createQuote(ctx, 'fatura-0047')).rejects.toThrow('já foi paga');
+    await expect(createQuote(ctx, 'fatura-0047')).rejects.toThrow('already been paid');
 
     await syncChain(ctx);
     const trail = await trace(ctx, 'fatura-0047');
@@ -207,19 +207,19 @@ describe.skipIf(!rpc || !dbUrl)('invoice 0047, paid and withdrawn to Pix, on a l
 
   it('refuses a withdrawal larger than the balance before anything moves', async () => {
     await expect(requestWithdrawal(ctx, { userId: 'ana', amountBrl: '100000.00' })).rejects.toThrow('saldo insuficiente');
-    await expect(requestWithdrawal(ctx, { userId: 'ana', amountBrl: '1.005' })).rejects.toThrow('valor inválido');
+    await expect(requestWithdrawal(ctx, { userId: 'ana', amountBrl: '1.005' })).rejects.toThrow('invalid amount');
   });
 
   it('refuses a second withdrawal of an invoice that already went out', async () => {
     await expect(requestWithdrawal(ctx, { userId: 'ana', amountBrl: '10.00', invoiceId: 'fatura-0047' })).rejects.toThrow(
-      'já tem um saque',
+      'already has a withdrawal',
     );
   });
 
   it('withdraws by itself what arrives after Ana turns it on, once', async () => {
     await ctx.db.setAutoWithdraw('ana', true);
     expect(await autoWithdraw(ctx)).toBe(0); // 0047 and 0048 were paid before
-    await ctx.db.upsertInvoice({ id: 'fatura-0049', number: '0049', payerName: 'Bramble & Pike Software, Inc.', payerWallet: account('payer').address, recipientId: 'ana', description: 'Revisão de código', amountUsd: '10.00' });
+    await ctx.db.upsertInvoice({ id: 'fatura-0049', number: '0049', payerName: 'Bramble & Pike Software, Inc.', payerWallet: account('payer').address, recipientId: 'ana', description: 'Code review', amountUsd: '10.00' });
     await payQuote(ctx, (await createQuote(ctx, 'fatura-0049')).id);
     expect(await autoWithdraw(ctx)).toBe(1);
     expect(await autoWithdraw(ctx)).toBe(0);
@@ -254,9 +254,9 @@ describe.skipIf(!rpc || !dbUrl)('invoice 0047, paid and withdrawn to Pix, on a l
     expect(again).toMatchObject({ id: done.id, alreadyOnPolicy: true, txHash: null });
     await expect(
       registerClient(ctx, { name: 'Outra Pessoa', cpf: '529.982.247-25', pixKey: 'outra@example.com', wallet: '0x00000000000000000000000000000000000c1e28' }),
-    ).rejects.toThrow('já tem cadastro');
+    ).rejects.toThrow('already signed up');
     await expect(registerClient(ctx, { name: 'Marina', cpf: '529.982.247-25', pixKey: 'a@b.co', wallet })).rejects.toThrow('nome completo');
-    await expect(registerClient(ctx, { name: 'Marina Lima', cpf: '529.982.247-24', pixKey: 'a@b.co', wallet })).rejects.toThrow('dígito verificador');
+    await expect(registerClient(ctx, { name: 'Marina Lima', cpf: '529.982.247-24', pixKey: 'a@b.co', wallet })).rejects.toThrow('check digit');
   });
 
   it('lets the protocol refuse a transfer to a wallet outside the policy, and writes it down', async () => {

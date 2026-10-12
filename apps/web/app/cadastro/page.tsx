@@ -8,28 +8,28 @@ import { effectivePixMode } from '@rastro/core';
 import { CadastroForm } from './form';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Cadastro' };
+export const metadata: Metadata = { title: 'Sign-up' };
 
-// The cadastro, in Portuguese: it is what puts a wallet on the TIP-403 whitelist, which is
-// what lets tBRL reach it at all. Simulated as far as the documents go, real on-chain.
+// The sign-up: it is what puts a wallet on the TIP-403 whitelist, which is what lets tBRL
+// reach it at all. Simulated as far as the documents go, real on-chain.
 export default async function CadastroPage() {
   const mode = await load(() => effectivePixMode(context()));
 
   return (
     <>
-      <Faixa lang="pt" mode={mode.ok ? mode.data : 'simulator'} />
+      <Faixa lang="en" mode={mode.ok ? mode.data : 'simulator'} />
       <main className="pagina">
         <header className="topo">
           <Marca />
           <nav className="topo__lado">
-            <Link href="/">Início</Link>
+            <Link href="/">Home</Link>
           </nav>
         </header>
 
-        <h1>Cadastro</h1>
+        <h1>Sign-up</h1>
         <p className="mudo" style={{ marginTop: 6, maxWidth: '38em' }}>
-          Para receber em tBRL, a carteira precisa estar na lista da política TIP-403. O cadastro é o que põe ela lá, e
-          é o protocolo que recusa qualquer transferência para quem não está.
+          To receive tBRL, a wallet has to be on the TIP-403 policy list. The sign-up puts it there, and the protocol
+          refuses any transfer to a wallet that isn&apos;t on the list.
         </p>
 
         <div style={{ marginTop: 32 }}>
@@ -37,9 +37,9 @@ export default async function CadastroPage() {
         </div>
 
         <p className="rodape">
-          Demonstração: a conferência de documento é simulada, só o dígito verificador do CPF é checado. O CPF não fica
-          guardado: o banco grava um hash, e a tela mostra no máximo os dígitos do meio. A inclusão na política é real,
-          na testnet do Tempo.
+          Demo: the document check is simulated, only the CPF check digit is verified. The CPF isn&apos;t stored: the
+          database keeps a hash, and the screen shows at most the middle digits. The inclusion on the policy is real,
+          on the Tempo testnet.
         </p>
       </main>
     </>

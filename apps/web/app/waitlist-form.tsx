@@ -4,9 +4,9 @@ import { useState, type FormEvent } from 'react';
 import { Erro } from '../components/erro';
 
 const OPTIONS = [
-  { value: 'recebo', label: 'Recebo' },
-  { value: 'pago', label: 'Pago' },
-  { value: 'os dois', label: 'Os dois' },
+  { value: 'recebo', label: 'I receive' },
+  { value: 'pago', label: 'I pay' },
+  { value: 'os dois', label: 'Both' },
 ] as const;
 
 // E-mail plus an optional question; stored in Postgres (table waitlist).
@@ -23,23 +23,23 @@ export function WaitlistForm() {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email: form.get('email'), relation: form.get('relation'), lang: 'pt' }),
+        body: JSON.stringify({ email: form.get('email'), relation: form.get('relation'), lang: 'en' }),
       });
       const body = await res.json();
       if (!res.ok) {
-        setState({ kind: 'erro', message: body.error ? `Não entrou na lista: ${body.error}.` : 'Não entrou na lista. Tente de novo.' });
+        setState({ kind: 'erro', message: body.error ? `Couldn't join the list: ${body.error}.` : "Couldn't join the list. Try again." });
         return;
       }
       setState({ kind: 'feito', added: body.added });
     } catch {
-      setState({ kind: 'erro', message: 'Não deu para falar com o servidor. Tente de novo em alguns segundos.' });
+      setState({ kind: 'erro', message: "Couldn't reach the server. Try again in a few seconds." });
     }
   }
 
   if (state.kind === 'feito') {
     return (
       <p role="status" style={{ fontWeight: 600 }}>
-        {state.added ? 'Pronto, você está na lista. A gente avisa quando abrir.' : 'Esse e-mail já estava na lista. A gente avisa quando abrir.'}
+        {state.added ? "You're on the list. We'll email when it opens." : "That email was already on the list. We'll email when it opens."}
       </p>
     );
   }
@@ -48,7 +48,7 @@ export function WaitlistForm() {
     <form onSubmit={submit} noValidate={false} style={{ display: 'grid', gap: 16, maxWidth: 480 }}>
       <div>
         <label className="rotulo" htmlFor="email">
-          E-mail
+          Email
         </label>
         <input
           className="campo"
@@ -63,7 +63,7 @@ export function WaitlistForm() {
       </div>
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="rotulo">
-          Você recebe ou paga em dólar? <span className="mudo" style={{ fontWeight: 400 }}>(opcional)</span>
+          Do you receive or pay in dollars? <span className="mudo" style={{ fontWeight: 400 }}>(optional)</span>
         </legend>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px' }}>
           {OPTIONS.map((option) => (
@@ -77,7 +77,7 @@ export function WaitlistForm() {
       {state.kind === 'erro' && <Erro>{state.message}</Erro>}
       <div>
         <button type="submit" className="botao" disabled={state.kind === 'enviando'} aria-busy={state.kind === 'enviando'}>
-          Entrar na lista
+          Join the list
         </button>
       </div>
     </form>

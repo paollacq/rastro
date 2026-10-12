@@ -11,7 +11,7 @@ export class AppError extends Error {
   }
 }
 
-export const notFound = (what: string) => new AppError(404, `${what} não encontrado`, 'not_found');
+export const notFound = (what: string) => new AppError(404, `${what} not found`, 'not_found');
 
 // One line out of whatever viem or fetch threw, for logs and the failure column.
 export function shortError(error: unknown): string {

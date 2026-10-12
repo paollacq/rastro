@@ -48,11 +48,11 @@ export async function resetDemo(ctx: Context, options: { inventoryBrl?: string }
     if (isCredentialError(error)) {
       throw new AppError(
         503,
-        'a credencial do sandbox não responde mais. Gere outra em https://docs.payzu.com.br/docs/pix-processamento/sandbox/credencial, ponha em PAYZU_TOKEN e rode pnpm pix:credencial',
+        'the sandbox credential is no longer responding. Generate another at https://docs.payzu.com.br/docs/pix-processamento/sandbox/credencial, put it in PAYZU_TOKEN and run pnpm pix:credencial',
         'credential_expired',
       );
     }
-    throw new AppError(502, `não deu para ler o saldo do Pix: ${shortError(error)}`, 'pix_unreachable');
+    throw new AppError(502, `couldn't read the Pix balance: ${shortError(error)}`, 'pix_unreachable');
   }
 
   // 1b. Every run spends part of the Pix balance and never gets it back, so the account is
@@ -75,9 +75,9 @@ export async function resetDemo(ctx: Context, options: { inventoryBrl?: string }
         }
         await new Promise((resolve) => setTimeout(resolve, 2_000));
       }
-      if (toppedUp === 0n) ctx.log(`a recarga de R$ ${amountBrl} não caiu a tempo; seguindo com R$ ${balanceBrl}`);
+      if (toppedUp === 0n) ctx.log(`the top-up of R$ ${amountBrl} didn't arrive in time; continuing with R$ ${balanceBrl}`);
     } catch (error) {
-      ctx.log(`não deu para recarregar o Pix (R$ ${amountBrl}): ${shortError(error)}`);
+      ctx.log(`couldn't top up the Pix (R$ ${amountBrl}): ${shortError(error)}`);
     }
   }
 
@@ -117,7 +117,7 @@ export async function resetDemo(ctx: Context, options: { inventoryBrl?: string }
         ctx,
         'ana',
         { address: tbrl, abi: Abis.tip20, functionName: 'transferWithMemo', args: [treasury, anaHolds, textMemo(MEMO)] },
-        'a devolução do tBRL da Ana',
+        "Ana's tBRL return",
       ),
     });
   }
@@ -155,7 +155,7 @@ export async function resetDemo(ctx: Context, options: { inventoryBrl?: string }
         ctx,
         'treasury',
         { address: tbrl, abi: Abis.tip20, functionName: 'mintWithMemo', args: [rfq, inventory, textMemo('rastro:inventory')] },
-        'a emissão do estoque',
+        'the stock mint',
       ),
     });
   }

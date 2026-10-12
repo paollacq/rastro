@@ -12,9 +12,9 @@ export async function POST(request: Request) {
     requireAdmin(request);
     const { mode } = await readJson(request);
     const ctx = context();
-    if (mode === 'simulator') await markCredentialExpired(ctx, 'trocado no admin');
+    if (mode === 'simulator') await markCredentialExpired(ctx, 'switched in admin');
     else if (mode === 'sandbox') await clearCredentialFlag(ctx);
-    else throw new AppError(400, 'mode precisa ser "sandbox" ou "simulator"', 'bad_request');
+    else throw new AppError(400, 'mode must be "sandbox" or "simulator"', 'bad_request');
     return { mode: await effectivePixMode(ctx) };
   });
 }

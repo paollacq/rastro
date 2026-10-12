@@ -33,12 +33,12 @@ for (const tx of report.txs) console.log(`  ${tx.what.padEnd(42)} ${explorer}/tx
 
 const cleared = Object.entries(report.cleared).filter(([, n]) => n > 0);
 console.log(
-  cleared.length ? `\nlimpou ${cleared.map(([table, n]) => `${n} ${table}`).join(', ')}` : '\nnão havia nada para limpar',
+  cleared.length ? `\ncleared ${cleared.map(([table, n]) => `${n} ${table}`).join(', ')}` : '\nnothing to clear',
 );
 console.log('fatura-0047 aberta, Ana e Bramble & Pike no lugar.');
 
 const gaps = await policyGaps(ctx);
-if (gaps.length) console.log(`\nATENÇÃO: fora da política TIP-403: ${gaps.join(', ')}. Rode pnpm chain:setup.`);
+if (gaps.length) console.log(`\nWARNING: not on TIP-403 policy: ${gaps.join(', ')}. Run pnpm chain:setup.`);
 
 console.log(`\npronto em ${report.seconds}s`);
 await ctx.db.sql.end();

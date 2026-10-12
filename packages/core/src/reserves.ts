@@ -126,11 +126,11 @@ export async function breakReserve(ctx: Context, amountBrl = '1000.00') {
   try {
     amount = floorToCents(brlToBase(amountBrl));
   } catch {
-    throw new AppError(400, 'valor inválido: use reais com até dois centavos, como 1000.00', 'invalid_amount');
+    throw new AppError(400, 'invalid amount: use reais with up to two cents, like 1000.00', 'invalid_amount');
   }
   if (amount <= 0n) throw new AppError(400, 'o valor precisa ser maior que zero', 'invalid_amount');
   if (await isPaused(ctx)) {
-    throw new AppError(409, 'o tBRL já está pausado; restaure as reservas antes', 'already_paused');
+    throw new AppError(409, 'tBRL is already paused; restore the reserves first', 'already_paused');
   }
 
   const { account } = ctx.signer('treasury');
@@ -144,7 +144,7 @@ export async function breakReserve(ctx: Context, amountBrl = '1000.00') {
       functionName: 'mintWithMemo',
       args: [account.address, amount, burnMemo(MEMO_DEMO)],
     },
-    'a emissão',
+    'the mint',
   );
   const reading = await readReserves(ctx);
   return {

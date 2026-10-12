@@ -58,7 +58,7 @@ async function until<T extends Trace>(path: string, done: (body: T) => boolean, 
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   const stuck = last?.withdrawals[0]?.status ?? last?.invoice?.status ?? 'nada';
-  throw new Error(`${what} não aconteceu em ${seconds}s (parou em ${stuck}).${await diagnose()}`);
+  throw new Error(`${what} didn't happen in ${seconds}s (stopped at ${stuck}).${await diagnose()}`);
 }
 
 // The app answers for itself: which of the three is down, or whether the token is paused.
@@ -70,11 +70,11 @@ async function diagnose(): Promise<string> {
       .map(([name, check]) => `${name}: ${check.detail}`);
     if (bad.length) return `\n     ${bad.join('\n     ')}`;
     if (health.checks.tbrl?.detail.startsWith('pausado')) {
-      return '\n     o tBRL está pausado: restaure o lastro em /admin ou com pnpm lastro';
+      return '\n     tBRL is paused: restore the backing in /admin or with pnpm lastro';
     }
-    return '\n     /api/health não vê problema, então olhe o worker (pnpm worker) e o log dele';
+    return '\n     /api/health sees no problem, so check the worker (pnpm worker) and its log';
   } catch (error) {
-    return `\n     /api/health também não respondeu: ${shortError(error)}`;
+    return `\n     /api/health also didn't respond: ${shortError(error)}`;
   }
 }
 
@@ -95,7 +95,7 @@ async function once(n: number): Promise<Run> {
 
   const t1 = Date.now();
   const quote = await api<{ id: string; quote: { brlOut: string } }>('/api/quote', { invoiceId: 'fatura-0047' });
-  lap('cotação', t1);
+  lap('quote', t1);
 
   const t2 = Date.now();
   await api('/api/pay', { quoteId: quote.id });
@@ -125,7 +125,7 @@ async function once(n: number): Promise<Run> {
 
   const e2eId = done.withdrawals[0]?.e2eId ?? '';
   const format = endToEndFormat(e2eId);
-  if (!format) throw new Error(`o ID do Pix não tem formato conhecido: ${e2eId}`);
+  if (!format) throw new Error(`the Pix ID has no known format: ${e2eId}`);
 
   return {
     n,
@@ -136,7 +136,7 @@ async function once(n: number): Promise<Run> {
   };
 }
 
-console.log(`ensaio: ${runs} ${runs === 1 ? 'execução' : 'execuções'} contra ${base}\n`);
+console.log(`rehearsal: ${runs} ${runs === 1 ? 'run' : 'runs'} against ${base}\n`);
 const results: Run[] = [];
 let failed = false;
 
@@ -151,18 +151,18 @@ for (let n = 1; n <= runs && !failed; n++) {
     console.log(`       ${run.note}`);
   } catch (error) {
     failed = true;
-    console.log(`${n}/${runs}  falhou: ${error instanceof AppError ? error.message : shortError(error)}`);
+    console.log(`${n}/${runs}  failed: ${error instanceof AppError ? error.message : shortError(error)}`);
   }
 }
 
 if (!failed && results.length) {
   const totals = results.map((run) => run.total).sort((a, b) => a - b);
   const median = totals[Math.floor(totals.length / 2)];
-  console.log(`\nOK: ${results.length} ${results.length === 1 ? 'execução' : 'execuções'} sem erro.`);
-  console.log(`mediana ${median.toFixed(1)}s, mais rápida ${totals[0].toFixed(1)}s, mais lenta ${totals.at(-1)?.toFixed(1)}s`);
+  console.log(`\nOK: ${results.length} ${results.length === 1 ? 'run' : 'runs'} with no error.`);
+  console.log(`median ${median.toFixed(1)}s, fastest ${totals[0].toFixed(1)}s, slowest ${totals.at(-1)?.toFixed(1)}s`);
 
 } else {
-  console.log('\nA contagem recomeça do zero depois do conserto.');
+  console.log('\nThe count starts over after the fix.');
   process.exitCode = 1;
 }
 

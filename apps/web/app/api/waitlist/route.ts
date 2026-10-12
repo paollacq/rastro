@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await readJson(request);
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      throw new AppError(400, 'confira o e-mail: falta o @ ou o domínio', 'invalid_email');
+      throw new AppError(400, 'check the email: it is missing the @ or the domain', 'invalid_email');
     }
     const relation = RELATIONS.find((r) => r === body.relation) ?? null;
     const lang = body.lang === 'en' ? 'en' : 'pt';

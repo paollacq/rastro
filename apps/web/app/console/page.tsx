@@ -49,7 +49,7 @@ export default async function ConsolePage({ searchParams }: { searchParams: Prom
         <header className="topo">
           <Marca rotulo="rastro, home" />
           <p className="topo__lado">
-            <span>Corretora parceira (demo)</span>
+            <span>Partner broker (demo)</span>
             <span>Compliance console</span>
           </p>
         </header>
@@ -236,7 +236,7 @@ async function Allowlist() {
       </div>
       <p className="mudo" style={{ marginTop: 4, marginBottom: 16, maxWidth: 680 }}>
         A whitelist on Tempo&apos;s TIP-403 registry. tBRL only moves between wallets on it: the chain refuses any other
-        transfer before it happens. A client gets on it after the cadastro (CPF checked, chave Pix on file).
+        transfer before it happens. A client gets on it after sign-up (CPF checked, Pix key on file).
       </p>
       <div className="tabela-rolagem">
         <table className="tabela">

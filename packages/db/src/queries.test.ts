@@ -128,7 +128,7 @@ describe.skipIf(!url)('queries', () => {
     await q.setQuoteFill('cot-2', '0xfill2');
     await q.markInvoicePaid('fatura-0048', new Date(Date.now() + 1_000));
     expect(await q.autoWithdrawDue()).toEqual([{ invoiceId: 'fatura-0048', userId: 'ana', brlOut: '4739000000' }]);
-    await q.insertWithdrawal({ id: 'saque-auto0001', userId: 'ana', invoiceId: 'fatura-0048', amountBrl: '4739000000' }, 'automático');
+    await q.insertWithdrawal({ id: 'saque-auto0001', userId: 'ana', invoiceId: 'fatura-0048', amountBrl: '4739000000' }, 'automatic');
     expect(await q.autoWithdrawDue()).toEqual([]);
     expect((await q.setAutoWithdraw('ana', false))?.autoWithdrawSince).toBeNull();
   });

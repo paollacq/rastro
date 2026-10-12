@@ -52,7 +52,7 @@ describe('operations report', () => {
     burnTx: '0xburn',
   };
 
-  it('writes Brasília time with its offset', () => {
+  it('writes Brasilia time with its offset', () => {
     expect(brasiliaTime('2026-10-10T21:25:39.000Z')).toBe('2026-10-10T18:25:39-03:00');
   });
 
@@ -87,7 +87,7 @@ describe('PTAX', () => {
   });
 
   it('asks the BCB for the last ten days, dates as MM-DD-YYYY, in Brazilian time', () => {
-    const url = ptaxUrl(new Date('2026-10-10T02:00:00Z')); // still the 9th in Brasília
+    const url = ptaxUrl(new Date('2026-10-10T02:00:00Z')); // still the 9th in Brasilia
     expect(url).toContain("@dataInicial='09-29-2026'");
     expect(url).toContain("@dataFinalCotacao='10-09-2026'");
   });

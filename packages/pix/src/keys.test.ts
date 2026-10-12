@@ -44,9 +44,9 @@ describe('Pix keys', () => {
 
   it('says what is wrong instead of guessing', () => {
     expect(() => parsePixKey('529.982.247-24')).toThrow(InvalidKey);
-    expect(() => parsePixKey('529.982.247-24')).toThrow('dígito verificador');
-    expect(() => parsePixKey('ana@')).toThrow('falta o @ ou o domínio');
+    expect(() => parsePixKey('529.982.247-24')).toThrow('check digit');
+    expect(() => parsePixKey('ana@')).toThrow('missing @ or domain');
     expect(() => parsePixKey('   ')).toThrow('digite uma chave Pix');
-    expect(() => parsePixKey('qualquer coisa')).toThrow('não reconhecida');
+    expect(() => parsePixKey('qualquer coisa')).toThrow('not recognized');
   });
 });

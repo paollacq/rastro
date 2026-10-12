@@ -6,12 +6,12 @@ import { currentPixMode } from '../../../lib/load';
 export default function Loading() {
   return (
     <>
-      <Faixa lang="pt" mode={currentPixMode()} />
+      <Faixa lang="en" mode={currentPixMode()} />
       <main className="pagina pagina--media" aria-busy="true">
         <header className="topo">
           <Esqueleto largura="84px" altura="22px" />
         </header>
-        <span className="sr-only">Carregando o rastro…</span>
+        <span className="sr-only">Loading the trail…</span>
         <Esqueleto largura="35%" altura="28px" />
         <Esqueleto largura="55%" margem={10} />
         <section className="comprovante" style={{ marginTop: 40 }}>
