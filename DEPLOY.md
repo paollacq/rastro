@@ -65,10 +65,10 @@ It prints `PAYZU_WEBHOOK_SECRET=…` once. Put it in Vercel and in Railway, and 
 
 ```bash
 pnpm demo:reset        # against the deployed DATABASE_URL
-pnpm ensaio --url https://<app> --runs 5
+pnpm final-review --url https://<app> --runs 5
 ```
 
-`demo:reset` tops the Pix account back up, squares the tBRL in circulation with it, clears what earlier runs wrote and leaves invoice #0047 open. `ensaio` then runs the whole demo five times through the public API and times each step. Five in a row with no error is the bar; if one fails, fix it and start the count again.
+`demo:reset` tops the Pix account back up, squares the tBRL in circulation with it, clears what earlier runs wrote and leaves invoice #0047 open. `final-review` then runs the whole demo five times through the public API and times each step. Five in a row with no error is the bar; if one fails, fix it and start the count again.
 
 Then the part no script can do: open the demo in an anonymous tab, on another computer, with someone who did not write the code.
 

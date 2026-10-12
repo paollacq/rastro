@@ -1,10 +1,10 @@
 // The whole demo, against a running app, as many times as asked, timed. This is the
 // Etapa 5 finish line: five runs in a row with no error, on the public URL.
 //
-//   pnpm ensaio                                  5 runs against http://localhost:3000
-//   pnpm ensaio --url https://rastro.vercel.app  against the deploy
-//   pnpm ensaio --runs 1                         one run, for a quick look
-//   pnpm ensaio --keep                           leaves the last run's data on screen
+//   pnpm final-review                                  5 runs against http://localhost:3000
+//   pnpm final-review --url https://rastro.vercel.app  against the deploy
+//   pnpm final-review --runs 1                         one run, for a quick look
+//   pnpm final-review --keep                           leaves the last run's data on screen
 //
 // Each run resets the demo first, so every one starts from the same frame: quote, pay,
 // withdraw, Pix, burn, and the Pix ID checked against the burn memo. The worker has to be
@@ -136,7 +136,7 @@ async function once(n: number): Promise<Run> {
   };
 }
 
-console.log(`rehearsal: ${runs} ${runs === 1 ? 'run' : 'runs'} against ${base}\n`);
+console.log(`final-review: ${runs} ${runs === 1 ? 'run' : 'runs'} against ${base}\n`);
 const results: Run[] = [];
 let failed = false;
 

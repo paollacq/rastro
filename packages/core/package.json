@@ -17,7 +17,7 @@
     "lastro-test": "tsx --env-file-if-exists=../../.env src/scripts/lastro-test.ts",
     "demo-reset": "tsx --env-file-if-exists=../../.env src/scripts/demo-reset.ts",
     "credencial": "tsx --env-file-if-exists=../../.env src/scripts/credencial.ts",
-    "ensaio": "tsx --env-file-if-exists=../../.env src/scripts/ensaio.ts"
+    "final-review": "tsx --env-file-if-exists=../../.env src/scripts/final-review.ts"
   },
   "dependencies": {
     "@rastro/chain": "workspace:*",

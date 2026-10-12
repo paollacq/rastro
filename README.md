@@ -47,10 +47,10 @@ pnpm fx:ptax         # the PTAX the quotes will use, straight from the Central B
 pnpm dev             # app and API on localhost:3000
 pnpm worker          # in another terminal: chain watcher, withdrawals and the reserve monitor
 pnpm saque:test      # a withdrawal end to end, checked against the burn memo
-pnpm ensaio --runs 5 # the whole demo five times through the API, timed
+pnpm final-review --runs 5 # the whole demo five times through the API, timed
 ```
 
-`pnpm demo:reset` is the one to run before a recording: it tops the Pix account back up, squares the tBRL in circulation with it, clears what earlier runs wrote and reopens invoice #0047. It is also what `pnpm ensaio` runs between its rounds. Deploying is in [DEPLOY.md](DEPLOY.md).
+`pnpm demo:reset` is the one to run before a recording: it tops the Pix account back up, squares the tBRL in circulation with it, clears what earlier runs wrote and reopens invoice #0047. It is also what `pnpm final-review` runs between its rounds. Deploying is in [DEPLOY.md](DEPLOY.md).
 
 `PIX_MODE=sandbox` sends Pix through PayZu; `PIX_MODE=simulator` uses our own simulator, with the same rules and IDs in the official format from a made-up institution (99999999). When the 24 h credential stops answering, the worker switches to the simulator by itself and every screen says "Pix simulado"; `/admin` switches it back once a new credential is in `.env`.
 

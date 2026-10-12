@@ -29,7 +29,7 @@
     "lastro": "pnpm --filter @rastro/core run reserves",
     "lastro:test": "pnpm --filter @rastro/core run lastro-test",
     "relatorio:conferir": "pnpm --filter @rastro/core run reconcile",
-    "ensaio": "pnpm --filter @rastro/core run ensaio"
+    "final-review": "pnpm --filter @rastro/core run final-review"
   },
   "devDependencies": {
     "@types/node": "^22",
